@@ -1,5 +1,7 @@
-using Microsoft.DirectX;
+Ôªøusing Microsoft.DirectX;
 using Microsoft.DirectX.DirectInput;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using TGC.Core.Direct3D;
 using TGC.Core.Example;
@@ -13,12 +15,21 @@ namespace TGC.Group.Model
 {
     /// <summary>
     ///     Ejemplo para implementar el TP.
-    ///     Inicialmente puede ser renombrado o copiado para hacer m·s ejemplos chicos, en el caso de copiar para que se
+    ///     Inicialmente puede ser renombrado o copiado para hacer m√°s ejemplos chicos, en el caso de copiar para que se
     ///     ejecute el nuevo ejemplo deben cambiar el modelo que instancia GameForm <see cref="Form.GameForm.InitGraphics()" />
     ///     line 97.
     /// </summary>
     public class GameModel : TgcExample
     {
+        //lista de √°rboles
+        private List<TgcMesh> trees;
+        //piso del mapa
+        private TgcPlane floor;
+        //longitud de cada lado del mapa
+        private int mapLength;
+        //vector posici√≥n de c√°mara
+        private Vector3 cameraPosition;
+
         /// <summary>
         ///     Constructor del juego.
         /// </summary>
@@ -31,18 +42,18 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
-        //Caja que se muestra en el ejemplo.
-        private TgcBox Box { get; set; }
+        ////Caja que se muestra en el ejemplo.
+        //private TgcBox Box { get; set; }
 
-        //Mesh de TgcLogo.
-        private TgcMesh Mesh { get; set; }
+        ////Mesh de TgcLogo.
+        //private TgcMesh Mesh { get; set; }
 
         //Boleano para ver si dibujamos el boundingbox
         private bool BoundingBox { get; set; }
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
-        ///     Escribir aquÌ todo el cÛdigo de inicializaciÛn: cargar modelos, texturas, estructuras de optimizaciÛn, todo
+        ///     Escribir aqu√≠ todo el c√≥digo de inicializaci√≥n: cargar modelos, texturas, estructuras de optimizaci√≥n, todo
         ///     procesamiento que podemos pre calcular para nuestro juego.
         ///     Borrar el codigo ejemplo no utilizado.
         /// </summary>
@@ -51,107 +62,124 @@ namespace TGC.Group.Model
             //Device de DirectX para crear primitivas.
             var d3dDevice = D3DDevice.Instance.Device;
 
-            //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
-            //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
-            var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
+            //loader
+            var loader = new TgcSceneLoader();
+            
+            //armo el piso con un plano
+            var floorTexture = TgcTexture.createTexture(d3dDevice, MediaDir + "Textures\\pasto.jpg");
+            mapLength = 2000;
+            floor = new TgcPlane(new Vector3(-(mapLength/2), 0, -(mapLength/2)), new Vector3(mapLength, 0, mapLength), TgcPlane.Orientations.XZplane, floorTexture, 10f, 10f);
 
-            //Cargamos una textura, tener en cuenta que cargar una textura significa crear una copia en memoria.
-            //Es importante cargar texturas en Init, si se hace en el render loop podemos tener grandes problemas si instanciamos muchas.
-            var texture = TgcTexture.createTexture(pathTexturaCaja);
+            //creo los √°rboles
+            //loader.loadSceneFromFile(MediaDir + "Meshes\\ArbolBosque\\ArbolBosque-TgcScene.xml").Meshes[0];
+            createTrees(loader.loadSceneFromFile(MediaDir + "Meshes\\Pino\\Pino-TgcScene.xml").Meshes[0], 200);
 
-            //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
-            var size = new Vector3(5, 10, 5);
-            //Construimos una caja seg˙n los par·metros, por defecto la misma se crea con centro en el origen y se recomienda asÌ para facilitar las transformaciones.
-            Box = TgcBox.fromSize(size, texture);
-            //PosiciÛn donde quiero que este la caja, es com˙n que se utilicen estructuras internas para las transformaciones.
-            //Entonces actualizamos la posiciÛn lÛgica, luego podemos utilizar esto en render para posicionar donde corresponda con transformaciones.
-            Box.Position = new Vector3(-25, 0, 0);
-
-            //Cargo el unico mesh que tiene la escena.
-            Mesh = new TgcSceneLoader().loadSceneFromFile(MediaDir + "LogoTGC-TgcScene.xml").Meshes[0];
-            //Defino una escala en el modelo logico del mesh que es muy grande.
-            Mesh.Scale = new Vector3(0.5f, 0.5f, 0.5f);
-
-            //Suelen utilizarse objetos que manejan el comportamiento de la camara.
-            //Lo que en realidad necesitamos gr·ficamente es una matriz de View.
-            //El framework maneja una c·mara est·tica, pero debe ser inicializada.
-            //PosiciÛn de la camara.
-            var cameraPosition = new Vector3(0, 0, 125);
+            //Posici√≥n de la camara.
+            cameraPosition = new Vector3(0, 1000, 125);
             //Quiero que la camara mire hacia el origen (0,0,0).
             var lookAt = Vector3.Empty;
             //Configuro donde esta la posicion de la camara y hacia donde mira.
             Camara.SetCamera(cameraPosition, lookAt);
             //Internamente el framework construye la matriz de view con estos dos vectores.
-            //Luego en nuestro juego tendremos que crear una c·mara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
+            //Luego en nuestro juego tendremos que crear una c√°mara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
+        }
+
+        /// <summary>
+        ///     Genera la disposici√≥n de los √°rboles en el mapa
+        ///     TODO: hacer que no se toquen...
+        /// </summary>
+        private void createTrees(TgcMesh tree, int cantidad)
+        {
+            Random rnd = new Random();
+
+            trees = new List<TgcMesh>();
+
+            TgcMesh instance;
+            float scale;
+
+            for( int i = 1; i <= cantidad; i++)
+            {
+                instance = tree.createMeshInstance(tree.Name + "_" + i);
+                scale = (float) rnd.NextDouble();
+                instance.Scale = new Vector3(scale, scale, scale);
+                instance.Position = new Vector3(rnd.Next(0, mapLength) - mapLength/2, 0, rnd.Next(0, mapLength) - mapLength/2);
+                trees.Add(instance);
+            }
         }
 
         /// <summary>
         ///     Se llama en cada frame.
-        ///     Se debe escribir toda la lÛgica de computo del modelo, asÌ como tambiÈn verificar entradas del usuario y reacciones
+        ///     Se debe escribir toda la l√≥gica de computo del modelo, as√≠ como tambi√©n verificar entradas del usuario y reacciones
         ///     ante ellas.
         /// </summary>
         public override void Update()
         {
             PreUpdate();
 
+            float velocidadCamara = 350;
+
             //Capturar Input teclado
-            if (Input.keyPressed(Key.F))
+            if (Input.keyDown(Key.A))
             {
-                BoundingBox = !BoundingBox;
+                Camara.SetCamera(Camara.Position + new Vector3(velocidadCamara * ElapsedTime, 0, 0), Camara.LookAt + new Vector3(velocidadCamara * ElapsedTime, 0, 0));
             }
 
-            //Capturar Input Mouse
-            if (Input.buttonUp(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            if (Input.keyDown(Key.D))
             {
-                //Como ejemplo podemos hacer un movimiento simple de la c·mara.
-                //En este caso le sumamos un valor en Y
-                Camara.SetCamera(Camara.Position + new Vector3(0, 10f, 0), Camara.LookAt);
-                //Ver ejemplos de c·mara para otras operaciones posibles.
+                Camara.SetCamera(Camara.Position + new Vector3(-velocidadCamara * ElapsedTime, 0, 0), Camara.LookAt + new Vector3(-velocidadCamara * ElapsedTime, 0, 0));
+            }
 
-                //Si superamos cierto Y volvemos a la posiciÛn original.
-                if (Camara.Position.Y > 300f)
-                {
-                    Camara.SetCamera(new Vector3(Camara.Position.X, 0f, Camara.Position.Z), Camara.LookAt);
-                }
+            if (Input.keyDown(Key.W))
+            {
+                Camara.SetCamera(Camara.Position + new Vector3(0, 0, -velocidadCamara * ElapsedTime), Camara.LookAt + new Vector3(0, 0, -velocidadCamara * ElapsedTime));
+            }
+
+            if (Input.keyDown(Key.S))
+            {
+                Camara.SetCamera(Camara.Position + new Vector3(0, 0, velocidadCamara * ElapsedTime), Camara.LookAt + new Vector3(0, 0, velocidadCamara * ElapsedTime));
+            }
+
+            if (Input.keyDown(Key.UpArrow))
+            {
+                Camara.SetCamera(Camara.Position + new Vector3(0, velocidadCamara * ElapsedTime, 0), Camara.LookAt + new Vector3(0, velocidadCamara * ElapsedTime, 0));
+            }
+
+            if (Input.keyDown(Key.DownArrow))
+            {
+                Camara.SetCamera(Camara.Position + new Vector3(0, -velocidadCamara * ElapsedTime, 0), Camara.LookAt + new Vector3(0, -velocidadCamara * ElapsedTime, 0));
+            }
+
+            if (Input.keyDown(Key.RightArrow))
+            {
+                Camara.SetCamera(Camara.Position, Camara.LookAt + new Vector3(velocidadCamara * ElapsedTime, 0, 0));
+            }
+
+            if (Input.keyDown(Key.LeftArrow))
+            {
+                Camara.SetCamera(Camara.Position, Camara.LookAt + new Vector3(-velocidadCamara * ElapsedTime, 0, 0));
             }
         }
 
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
-        ///     Escribir aquÌ todo el cÛdigo referido al renderizado.
+        ///     Escribir aqu√≠ todo el c√≥digo referido al renderizado.
         ///     Borrar todo lo que no haga falta.
         /// </summary>
         public override void Render()
         {
-            //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones seg˙n nuestra conveniencia.
+            //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones seg√∫n nuestra conveniencia.
             PreRender();
 
             //Dibuja un texto por pantalla
-            DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
-            DrawText.drawText(
-                "Con clic izquierdo subimos la camara [Actual]: " + TgcParserUtils.printVector3(Camara.Position), 0, 30,
-                Color.OrangeRed);
+            DrawText.drawText("W, A, S, D ‚Üê, ‚Üí, ‚Üë, ‚Üì", 0, 20, Color.Black);
 
-            //Siempre antes de renderizar el modelo necesitamos actualizar la matriz de transformacion.
-            //Debemos recordar el orden en cual debemos multiplicar las matrices, en caso de tener modelos jer·rquicos, tenemos control total.
-            Box.Transform = Matrix.Scaling(Box.Scale) *
-                            Matrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) *
-                            Matrix.Translation(Box.Position);
-            //A modo ejemplo realizamos toda las multiplicaciones, pero aquÌ solo nos hacia falta la traslaciÛn.
-            //Finalmente invocamos al render de la caja
-            Box.render();
+            floor.render();
 
-            //Cuando tenemos modelos mesh podemos utilizar un mÈtodo que hace la matriz de transformaciÛn est·ndar.
-            //Es ˙til cuando tenemos transformaciones simples, pero OJO cuando tenemos transformaciones jer·rquicas o complicadas.
-            Mesh.UpdateMeshTransform();
-            //Render del mesh
-            Mesh.render();
-
-            //Render de BoundingBox, muy ˙til para debug de colisiones.
-            if (BoundingBox)
+            foreach (TgcMesh mesh in trees)
             {
-                Box.BoundingBox.render();
-                Mesh.BoundingBox.render();
+                mesh.Transform = Matrix.Scaling(mesh.Scale) * Matrix.Translation(mesh.Position);
+                mesh.AlphaBlendEnable = true;
+                mesh.render();
             }
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
@@ -159,16 +187,16 @@ namespace TGC.Group.Model
         }
 
         /// <summary>
-        ///     Se llama cuando termina la ejecuciÛn del ejemplo.
+        ///     Se llama cuando termina la ejecuci√≥n del ejemplo.
         ///     Hacer Dispose() de todos los objetos creados.
-        ///     Es muy importante liberar los recursos, sobretodo los gr·ficos ya que quedan bloqueados en el device de video.
+        ///     Es muy importante liberar los recursos, sobretodo los gr√°ficos ya que quedan bloqueados en el device de video.
         /// </summary>
         public override void Dispose()
         {
-            //Dispose de la caja.
-            Box.dispose();
-            //Dispose del mesh.
-            Mesh.dispose();
+            foreach(TgcMesh element in trees)
+            {
+                element.dispose();
+            }
         }
     }
 }
