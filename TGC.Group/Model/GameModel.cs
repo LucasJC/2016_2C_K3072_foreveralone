@@ -9,6 +9,7 @@ using TGC.Core.Geometry;
 using TGC.Core.SceneLoader;
 using TGC.Core.Terrain;
 using TGC.Core.Textures;
+using TGC.Examples.Camara;
 
 namespace TGC.Group.Model
 {
@@ -20,6 +21,7 @@ namespace TGC.Group.Model
     /// </summary>
     public class GameModel : TgcExample
     {
+        protected readonly Vector3 DEFAULT_UP_VECTOR = new Vector3(0.0f, 1.0f, 0.0f);
         //Directx device
         Microsoft.DirectX.Direct3D.Device d3dDevice;
         //Loader del framework
@@ -75,8 +77,10 @@ namespace TGC.Group.Model
 
             CreateSkyBox();
 
-            InicializarCamara();
-
+            //InicializarCamara();
+            TgcFpsCamera camera = new TgcFpsCamera(Input);
+            camera.LockCam = true;
+            Camara = camera;
         }
 
         /// <summary>
@@ -88,7 +92,7 @@ namespace TGC.Group.Model
         {
             PreUpdate();
 
-            ConfigurarCamara();
+            //ConfigurarCamara();
 
             ActualizarPosicionSkyBox();
         }
@@ -136,19 +140,6 @@ namespace TGC.Group.Model
 
 
 //Métodos propios
-
-        /// <summary>
-        ///     Inicializa la cámara con sus vectores correspondientes
-        /// </summary>
-        private void InicializarCamara()
-        {
-            //Posición de la camara.
-            cameraPosition = new Vector3(0, 1000, 125);
-            //Quiero que la camara mire hacia el origen (0,0,0).
-            var lookAt = Vector3.Empty;
-            //Configuro donde esta la posicion de la camara y hacia donde mira.
-            Camara.SetCamera(cameraPosition, lookAt);
-        }
 
         /// <summary>
         ///     Crea el mapa
@@ -222,6 +213,19 @@ namespace TGC.Group.Model
             }
         }
 
+        /// <summary>
+        ///     Inicializa la cámara con sus vectores correspondientes
+        /// </summary>
+        private void InicializarCamara()
+        {
+            //Posición de la camara.
+            cameraPosition = new Vector3(0, 1000, 125);
+            //Quiero que la camara mire hacia el origen (0,0,0).
+            var lookAt = Vector3.Empty;
+            //Configuro donde esta la posicion de la camara y hacia donde mira.
+            Camara.SetCamera(cameraPosition, lookAt);
+        }
+
         private void ConfigurarCamara()
         {
             float velocidadCamara = 350;
@@ -246,7 +250,7 @@ namespace TGC.Group.Model
             {
                 Camara.SetCamera(Camara.Position + new Vector3(0, 0, velocidadCamara * ElapsedTime), Camara.LookAt + new Vector3(0, 0, velocidadCamara * ElapsedTime));
             }
-
+            
             if (Input.keyDown(Key.UpArrow))
             {
                 Camara.SetCamera(Camara.Position + new Vector3(0, velocidadCamara * ElapsedTime, 0), Camara.LookAt + new Vector3(0, velocidadCamara * ElapsedTime, 0));
@@ -265,6 +269,7 @@ namespace TGC.Group.Model
             if (Input.keyDown(Key.LeftArrow))
             {
                 Camara.SetCamera(Camara.Position, Camara.LookAt + new Vector3(-velocidadCamara * ElapsedTime, 0, 0));
+                
             }
         }
 
