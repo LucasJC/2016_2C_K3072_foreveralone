@@ -21,23 +21,16 @@ namespace TGC.Group.Model
     /// </summary>
     public class GameModel : TgcExample
     {
-        protected readonly Vector3 DEFAULT_UP_VECTOR = new Vector3(0.0f, 1.0f, 0.0f);
         //Directx device
         Microsoft.DirectX.Direct3D.Device d3dDevice;
         //Loader del framework
         private TgcSceneLoader loader;
-        //lista de árboles
-        private List<TgcMesh> trees;
-        //piso del mapa
-        private TgcPlane floor;
-        //longitud de cada lado del mapa
-        private int mapLength;
+
         //vector posición de cámara
         private Vector3 cameraPosition;
-        //skybox
-        private TgcSkyBox skyBox;
-        //mover skybox con cámara?
-        private bool moveSkyBoxWithCamera;
+
+        //mundo
+        private World MyWorld;
 
         /// <summary>
         ///     Constructor del juego.
@@ -51,15 +44,6 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
-        ////Caja que se muestra en el ejemplo.
-        //private TgcBox Box { get; set; }
-
-        ////Mesh de TgcLogo.
-        //private TgcMesh Mesh { get; set; }
-
-        //Boleano para ver si dibujamos el boundingbox
-        private bool BoundingBox { get; set; }
-
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
         ///     Escribir aquí todo el código de inicialización: cargar modelos, texturas, estructuras de optimización, todo
@@ -72,15 +56,12 @@ namespace TGC.Group.Model
             d3dDevice = D3DDevice.Instance.Device;
             //Instancio el loader del framework
             loader = new TgcSceneLoader();
-     
-            CrearMapa();
-
-            CreateSkyBox();
-
             //InicializarCamara();
             TgcFpsCamera camera = new TgcFpsCamera(Input);
             camera.LockCam = true;
             Camara = camera;
+            //genero el mundo
+            MyWorld = new World(MediaDir, d3dDevice, loader, Camara);
         }
 
         /// <summary>
@@ -93,8 +74,7 @@ namespace TGC.Group.Model
             PreUpdate();
 
             //ConfigurarCamara();
-
-            ActualizarPosicionSkyBox();
+            MyWorld.update();
         }
 
         /// <summary>
@@ -110,16 +90,7 @@ namespace TGC.Group.Model
             //Dibuja un texto por pantalla
             DrawText.drawText("W, A, S, D ←, →, ↑, ↓", 0, 20, Color.Black);
 
-            skyBox.render();
-
-            floor.render();
-
-            foreach (TgcMesh mesh in trees)
-            {
-                mesh.Transform = Matrix.Scaling(mesh.Scale) * Matrix.Translation(mesh.Position);
-                mesh.AlphaBlendEnable = true;
-                mesh.render();
-            }
+            MyWorld.render();
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
@@ -132,85 +103,7 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Dispose()
         {
-            foreach (TgcMesh element in trees)
-            {
-                element.dispose();
-            }
-        }
-
-
-//Métodos propios
-
-        /// <summary>
-        ///     Crea el mapa
-        /// </summary>
-        private void CrearMapa()
-        {
-            //armo el piso con un plano
-            var floorTexture = TgcTexture.createTexture(d3dDevice, MediaDir + "Textures\\pasto.jpg");
-            mapLength = 2000;
-            floor = new TgcPlane(new Vector3(-(mapLength / 2), 0, -(mapLength / 2)), new Vector3(mapLength, 0, mapLength), TgcPlane.Orientations.XZplane, floorTexture, 10f, 10f);
-
-            //creo los árboles
-            //loader.loadSceneFromFile(MediaDir + "Meshes\\ArbolBosque\\ArbolBosque-TgcScene.xml").Meshes[0];
-            CreateTrees(200);
-        }
-
-        /// <summary>
-        ///     Genera el skymap y lo configura
-        /// </summary>
-        private void CreateSkyBox()
-        {
-            //Crear SkyBox
-            skyBox = new TgcSkyBox();
-            skyBox.Center = new Vector3(0, 0, 0);
-            skyBox.Size = new Vector3(10000, 10000, 10000);
-
-            //indico si se mueve o no con la cámara
-            moveSkyBoxWithCamera = false;
-
-            //Configurar color
-            //skyBox.Color = Color.OrangeRed;
-
-            var texturesPath = MediaDir + "Textures\\SkyBox\\";
-
-            //Configurar las texturas para cada una de las 6 caras
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "phobos_up.jpg");
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "phobos_dn.jpg");
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "phobos_lf.jpg");
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "phobos_rt.jpg");
-
-            //Hay veces es necesario invertir las texturas Front y Back si se pasa de un sistema RightHanded a uno LeftHanded
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "phobos_bk.jpg");
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "phobos_ft.jpg");
-            skyBox.SkyEpsilon = 25f;
-            //Inicializa todos los valores para crear el SkyBox
-            skyBox.Init();
-        }
-
-        /// <summary>
-        ///     Genera la disposición de los árboles en el mapa
-        ///     TODO: hacer que no se toquen...
-        /// </summary>
-        private void CreateTrees(int cantidad)
-        {
-            TgcMesh tree = loader.loadSceneFromFile(MediaDir + "Meshes\\Pino\\Pino-TgcScene.xml").Meshes[0];
-
-            Random rnd = new Random();
-
-            trees = new List<TgcMesh>();
-
-            TgcMesh instance;
-            float scale;
-
-            for( int i = 1; i <= cantidad; i++)
-            {
-                instance = tree.createMeshInstance(tree.Name + "_" + i);
-                scale = (float) rnd.NextDouble();
-                instance.Scale = new Vector3(scale, scale, scale);
-                instance.Position = new Vector3(rnd.Next(0, mapLength) - mapLength/2, 0, rnd.Next(0, mapLength) - mapLength/2);
-                trees.Add(instance);
-            }
+            MyWorld.dispose();
         }
 
         /// <summary>
@@ -270,17 +163,6 @@ namespace TGC.Group.Model
             {
                 Camara.SetCamera(Camara.Position, Camara.LookAt + new Vector3(-velocidadCamara * ElapsedTime, 0, 0));
                 
-            }
-        }
-
-        /// <summary>
-        ///     Actualiza el centro del skybox si corresponde al moverse la cámara
-        /// </summary>
-        private void ActualizarPosicionSkyBox()
-        {
-            if(moveSkyBoxWithCamera)
-            {
-                skyBox.Center = Camara.Position;
             }
         }
     }

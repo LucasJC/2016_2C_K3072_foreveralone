@@ -38,9 +38,9 @@ namespace TGC.Examples.Camara
             mouseCenter = new Point(
                 D3DDevice.Instance.Device.Viewport.Width / 2,
                 D3DDevice.Instance.Device.Viewport.Height / 2);
-            RotationSpeed = 0.1f;
-            MovementSpeed = 500f;
-            JumpSpeed = 500f;
+            RotationSpeed = 0.05f;
+            MovementSpeed = 50f;
+            JumpSpeed = 50f;
             directionView = new Vector3(0, 0, -1);
             leftrightRot = FastMath.PI_HALF;
             updownRot = -FastMath.PI / 10.0f;
