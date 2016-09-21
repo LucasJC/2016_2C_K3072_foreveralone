@@ -22,28 +22,28 @@ namespace TGC.Examples.Camara
         private Matrix cameraRotation;
 
         //Direction view se calcula a partir de donde se quiere ver con la camara inicialmente. por defecto se ve en -Z.
-        private Vector3 directionView;        
+        private Vector3 directionView;
 
         //No hace falta la base ya que siempre es la misma, la base se arma segun las rotaciones de esto costados y updown.
         private float leftrightRot;
         private float updownRot;
 
         private bool lockCam;
-        private Vector3 positionEye;        
+        private Vector3 positionEye;
 
         public TgcFpsCamera(TgcD3dInput input)
         {
             Input = input;
-            positionEye = new Vector3();
+            positionEye = new Vector3(0, 10, 0);
             mouseCenter = new Point(
                 D3DDevice.Instance.Device.Viewport.Width / 2,
                 D3DDevice.Instance.Device.Viewport.Height / 2);
-            RotationSpeed = 0.05f;
-            MovementSpeed = 50f;
-            JumpSpeed = 50f;
+            RotationSpeed = 0.01f;
+            MovementSpeed = 100f;
+            JumpSpeed = 100f;
             directionView = new Vector3(0, 0, -1);
-            leftrightRot = FastMath.PI_HALF;
-            updownRot = -FastMath.PI / 10.0f;
+            leftrightRot = 0;
+            updownRot = 0;
             cameraRotation = Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot);
         }
 
@@ -88,7 +88,7 @@ namespace TGC.Examples.Camara
         public float MovementSpeed { get; set; }
 
         public float RotationSpeed { get; set; }
-
+        
         public float JumpSpeed { get; set; }
 
         /// <summary>
@@ -129,18 +129,30 @@ namespace TGC.Examples.Camara
             //Jump
             if (Input.keyDown(Key.Space))
             {
-                //moveVector += new Vector3(0, 1, 0) * JumpSpeed;
+                moveVector += new Vector3(0, 1, 0) * JumpSpeed;
             }
 
             //Crouch
             if (Input.keyDown(Key.LeftControl))
             {
-                //moveVector += new Vector3(0, -1, 0) * JumpSpeed;
+                moveVector += new Vector3(0, -1, 0) * JumpSpeed;
             }
 
             if (Input.keyPressed(Key.L) || Input.keyPressed(Key.Escape))
             {
                 LockCam = !lockCam;
+            }
+
+            if(Input.keyDown(Key.LeftArrow))
+            {
+                leftrightRot -= FastMath.PI_HALF * RotationSpeed;
+                cameraRotation = Matrix.RotationY(leftrightRot);
+            }
+
+            if (Input.keyDown(Key.RightArrow))
+            {
+                leftrightRot += FastMath.PI_HALF * RotationSpeed;
+                cameraRotation = Matrix.RotationY(leftrightRot);
             }
 
             //Solo rotar si se esta aprentando el boton izq del mouse
@@ -166,7 +178,7 @@ namespace TGC.Examples.Camara
             var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
             var cameraRotatedUpVector = Vector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
 
-            base.SetCamera(positionEye, cameraFinalTarget, DEFAULT_UP_VECTOR);
+            base.SetCamera(positionEye, cameraFinalTarget, cameraRotatedUpVector);
         }
 
         /// <summary>

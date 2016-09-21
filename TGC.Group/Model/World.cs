@@ -24,6 +24,8 @@ namespace TGC.Group.Model
 
         //lista de árboles
         private List<TgcMesh> Trees;
+        //lista de objetos del mapa
+        private List<TgcMesh> Objetos;
         //piso del mapa
         private TgcPlane Floor;
         //skybox
@@ -85,6 +87,12 @@ namespace TGC.Group.Model
                 mesh.render();
                 
             }
+
+            foreach (TgcMesh mesh in Objetos)
+            {
+                mesh.Transform = Matrix.Scaling(mesh.Scale) * Matrix.Translation(mesh.Position);
+                mesh.render();
+            }
         }
 
         /// <summary>
@@ -111,6 +119,18 @@ namespace TGC.Group.Model
             //creo los árboles
             //loader.loadSceneFromFile(MediaDir + "Meshes\\ArbolBosque\\ArbolBosque-TgcScene.xml").Meshes[0];
             CreateTrees(200);
+            //creo otros objetos
+            CreateObjects();
+        }
+
+        private void CreateObjects()
+        {
+            TgcMesh teapot = Loader.loadSceneFromFile(MediaDir + "Meshes\\Teapot\\Teapot-TgcScene.xml").Meshes[0];
+            teapot.Scale = new Vector3(0.5f, 0.5f, 0.5f);
+            teapot.updateBoundingBox();
+            teapot.Position = new Vector3(0, teapot.BoundingBox.PMax.Y * 0.75f, 0);
+            Objetos = new List<TgcMesh>();
+            Objetos.Add(teapot);
         }
 
         /// <summary>
@@ -164,10 +184,34 @@ namespace TGC.Group.Model
             {
                 instance = tree.createMeshInstance(tree.Name + "_" + i);
                 scale = (float)rnd.NextDouble();
+                if (scale < 0.3f) scale = 0.3f;
                 instance.Scale = new Vector3(scale, scale, scale);
                 instance.Position = new Vector3(rnd.Next(0, MapLength) - MapLength / 2, 0, rnd.Next(0, MapLength) - MapLength / 2);
+                
                 Trees.Add(instance);
             }
+        }
+
+        /// <summary>
+        /// 
+        ///     Método que retorna si una posición x,y está libre en base a una lista de meshes
+        /// 
+        /// </summary>
+        /// <param name="candidate"></param>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        private bool CheckPositionNotUsed(Vector3 candidate, List<TgcMesh> list)
+        {
+            foreach(TgcMesh mesh in list)
+            {
+                if(mesh.Position.X == candidate.X && mesh.Position.Y == candidate.Y)
+                {
+                    Console.WriteLine("posición usada, recalculando...");
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

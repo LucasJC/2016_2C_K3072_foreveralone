@@ -9,6 +9,7 @@ using TGC.Core.Geometry;
 using TGC.Core.SceneLoader;
 using TGC.Core.Terrain;
 using TGC.Core.Textures;
+using TGC.Core.Utils;
 using TGC.Examples.Camara;
 
 namespace TGC.Group.Model
@@ -56,10 +57,8 @@ namespace TGC.Group.Model
             d3dDevice = D3DDevice.Instance.Device;
             //Instancio el loader del framework
             loader = new TgcSceneLoader();
-            //InicializarCamara();
-            TgcFpsCamera camera = new TgcFpsCamera(Input);
-            camera.LockCam = true;
-            Camara = camera;
+            //Inicializo cámara
+            Camara = new TgcFpsCamera(Input);
             //genero el mundo
             MyWorld = new World(MediaDir, d3dDevice, loader, Camara);
         }
@@ -74,6 +73,7 @@ namespace TGC.Group.Model
             PreUpdate();
 
             //ConfigurarCamara();
+
             MyWorld.update();
         }
 
@@ -88,8 +88,8 @@ namespace TGC.Group.Model
             PreRender();
 
             //Dibuja un texto por pantalla
-            DrawText.drawText("W, A, S, D ←, →, ↑, ↓", 0, 20, Color.Black);
-
+            DrawText.drawText("W, A, S, D ←, →, ↑, ↓", 0, 20, Color.DarkSalmon);
+            DrawText.drawText("Camera: " + Camara.Position.X + "," + Camara.Position.Y + "," + Camara.Position.Z, 0, 40, Color.DarkOrange);
             MyWorld.render();
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
@@ -104,66 +104,6 @@ namespace TGC.Group.Model
         public override void Dispose()
         {
             MyWorld.dispose();
-        }
-
-        /// <summary>
-        ///     Inicializa la cámara con sus vectores correspondientes
-        /// </summary>
-        private void InicializarCamara()
-        {
-            //Posición de la camara.
-            cameraPosition = new Vector3(0, 1000, 125);
-            //Quiero que la camara mire hacia el origen (0,0,0).
-            var lookAt = Vector3.Empty;
-            //Configuro donde esta la posicion de la camara y hacia donde mira.
-            Camara.SetCamera(cameraPosition, lookAt);
-        }
-
-        private void ConfigurarCamara()
-        {
-            float velocidadCamara = 350;
-
-            //Capturar Input teclado
-            if (Input.keyDown(Key.A))
-            {
-                Camara.SetCamera(Camara.Position + new Vector3(velocidadCamara * ElapsedTime, 0, 0), Camara.LookAt + new Vector3(velocidadCamara * ElapsedTime, 0, 0));
-            }
-
-            if (Input.keyDown(Key.D))
-            {
-                Camara.SetCamera(Camara.Position + new Vector3(-velocidadCamara * ElapsedTime, 0, 0), Camara.LookAt + new Vector3(-velocidadCamara * ElapsedTime, 0, 0));
-            }
-
-            if (Input.keyDown(Key.W))
-            {
-                Camara.SetCamera(Camara.Position + new Vector3(0, 0, -velocidadCamara * ElapsedTime), Camara.LookAt + new Vector3(0, 0, -velocidadCamara * ElapsedTime));
-            }
-
-            if (Input.keyDown(Key.S))
-            {
-                Camara.SetCamera(Camara.Position + new Vector3(0, 0, velocidadCamara * ElapsedTime), Camara.LookAt + new Vector3(0, 0, velocidadCamara * ElapsedTime));
-            }
-            
-            if (Input.keyDown(Key.UpArrow))
-            {
-                Camara.SetCamera(Camara.Position + new Vector3(0, velocidadCamara * ElapsedTime, 0), Camara.LookAt + new Vector3(0, velocidadCamara * ElapsedTime, 0));
-            }
-
-            if (Input.keyDown(Key.DownArrow))
-            {
-                Camara.SetCamera(Camara.Position + new Vector3(0, -velocidadCamara * ElapsedTime, 0), Camara.LookAt + new Vector3(0, -velocidadCamara * ElapsedTime, 0));
-            }
-
-            if (Input.keyDown(Key.RightArrow))
-            {
-                Camara.SetCamera(Camara.Position, Camara.LookAt + new Vector3(velocidadCamara * ElapsedTime, 0, 0));
-            }
-
-            if (Input.keyDown(Key.LeftArrow))
-            {
-                Camara.SetCamera(Camara.Position, Camara.LookAt + new Vector3(-velocidadCamara * ElapsedTime, 0, 0));
-                
-            }
         }
     }
 }
