@@ -46,13 +46,13 @@ namespace TGC.Group.Model
         /// <param name="device"></param>
         /// <param name="loader"></param>
         /// <param name="camera"></param>
-        public World(String mediaDir, Microsoft.DirectX.Direct3D.Device device, TgcSceneLoader loader, TgcCamera camera)
+        public World(String mediaDir, Microsoft.DirectX.Direct3D.Device device, TgcSceneLoader loader, TgcCamera camera, int mapLength)
         {
             MediaDir = mediaDir;
             Device = device;
             Loader = loader;
             Camera = camera;
-
+            MapLength = mapLength;
             Optimizations = false;
 
             CreateMap();
@@ -113,7 +113,6 @@ namespace TGC.Group.Model
         {
             //armo el piso con un plano
             var floorTexture = TgcTexture.createTexture(Device, MediaDir + "Textures\\pasto.jpg");
-            MapLength = 2000;
             Floor = new TgcPlane(new Vector3(-(MapLength / 2), 0, -(MapLength / 2)), new Vector3(MapLength, 0, MapLength), TgcPlane.Orientations.XZplane, floorTexture, 10f, 10f);
 
             //creo los árboles

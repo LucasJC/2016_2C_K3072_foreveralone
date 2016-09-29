@@ -57,10 +57,12 @@ namespace TGC.Group.Model
             d3dDevice = D3DDevice.Instance.Device;
             //Instancio el loader del framework
             loader = new TgcSceneLoader();
+            int mapLength = 2000;
             //Inicializo cámara
-            Camara = new TgcFpsCamera(Input);
+            Camara = new TgcFpsCamera(Input, (mapLength / 2) , - (mapLength / 2), (mapLength / 2), -(mapLength / 2));
             //genero el mundo
-            MyWorld = new World(MediaDir, d3dDevice, loader, Camara);
+            MyWorld = new World(MediaDir, d3dDevice, loader, Camara, mapLength);
+            
         }
 
         /// <summary>

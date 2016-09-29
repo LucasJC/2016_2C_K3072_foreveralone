@@ -18,7 +18,11 @@ namespace TGC.Examples.Camara
     {
         //TODO por ahora clavo esto en 10 para evitar volar...
         //TODO agregar efecto tipo gravedad
-        public float FixedHeight = 10;
+        public float FixedHeight = 15;
+        public float MapXLimit = 0;
+        public float MapXNegLimit = 0;
+        public float MapZLimit = 0;
+        public float MapZNegLimit = 0;
 
         private readonly Point mouseCenter; //Centro de mause 2D para ocultarlo.
 
@@ -35,6 +39,10 @@ namespace TGC.Examples.Camara
         private bool lockCam;
         private Vector3 positionEye;
 
+        private bool Jumping = false;
+        private bool Falling = false;
+        private float JumpingTime = 0f;
+
         public TgcFpsCamera(TgcD3dInput input)
         {
             Input = input;
@@ -42,13 +50,25 @@ namespace TGC.Examples.Camara
             mouseCenter = new Point(
                 D3DDevice.Instance.Device.Viewport.Width / 2,
                 D3DDevice.Instance.Device.Viewport.Height / 2);
-            RotationSpeed = 0.01f;
-            MovementSpeed = 100f;
-            JumpSpeed = 100f;
+            RotationSpeed = 0.0025f;
+            MouseRotationSpeed = 0.01f;
+            WalkingSpeed = 75f;
+            RunningSpeed = 150f;
+            MovementSpeed = WalkingSpeed;
+            JumpSpeed = 200f;
             directionView = new Vector3(0, 0, -1);
             leftrightRot = 0;
             updownRot = 0;
             cameraRotation = Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot);
+            Gravity = 0.025f;
+        }
+
+        public TgcFpsCamera(TgcD3dInput input, float mapXLimit, float mapXNegLimit, float mapZLimit, float mapZNegLimit) : this(input)
+        {
+            this.MapXLimit = mapXLimit;
+            this.MapXNegLimit = mapXNegLimit;
+            this.MapZLimit = mapZLimit;
+            this.MapZNegLimit = mapZNegLimit;
         }
 
         public TgcFpsCamera(Vector3 positionEye, TgcD3dInput input) : this(input)
@@ -89,10 +109,13 @@ namespace TGC.Examples.Camara
             }
         }
 
-        public float MovementSpeed { get; set; }
-
+        private float MovementSpeed;
+        public float RunningSpeed { get; set; }
+        public float WalkingSpeed { get; set; }
         public float RotationSpeed { get; set; }
-        
+        public float Gravity { get; set; }
+        public float MouseRotationSpeed { get; set; }
+
         public float JumpSpeed { get; set; }
 
         /// <summary>
@@ -105,7 +128,17 @@ namespace TGC.Examples.Camara
 
         public override void UpdateCamera(float elapsedTime)
         {
+            var JumpTime = 3;
             var moveVector = new Vector3(0, 0, 0);
+
+            if (Input.keyDown(Key.LeftShift))
+            {
+                this.MovementSpeed = RunningSpeed;
+            }else
+            {
+                this.MovementSpeed = WalkingSpeed;
+            }
+
             //Forward
             if (Input.keyDown(Key.W))
             {
@@ -131,15 +164,23 @@ namespace TGC.Examples.Camara
             }
 
             //Jump
-            if (Input.keyDown(Key.Space))
+            if (Input.keyPressed(Key.Space))
             {
-                moveVector += new Vector3(0, 1, 0) * JumpSpeed;
+                if (!Jumping)
+                {
+                    Jumping = true;
+                }
             }
-
-            //Crouch
-            if (Input.keyDown(Key.LeftControl))
+            if (Jumping)
             {
-                moveVector += new Vector3(0, -1, 0) * JumpSpeed;
+                if (JumpingTime < JumpTime)  moveVector += new Vector3(0, 1, 0) * JumpSpeed;
+                if (JumpingTime >= JumpTime)
+                {
+                    Jumping = false;
+                    Falling = true;
+                    JumpingTime = 0;
+                }
+                JumpingTime += elapsedTime * 10;
             }
 
             if (Input.keyPressed(Key.L) || Input.keyPressed(Key.Escape))
@@ -162,8 +203,8 @@ namespace TGC.Examples.Camara
             //Solo rotar si se esta aprentando el boton izq del mouse
             if (lockCam || Input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
-                leftrightRot -= -Input.XposRelative * RotationSpeed;
-                updownRot -= Input.YposRelative * RotationSpeed;
+                leftrightRot -= -Input.XposRelative * MouseRotationSpeed;
+                updownRot -= Input.YposRelative * MouseRotationSpeed;
                 //Se actualiza matrix de rotacion, para no hacer este calculo cada vez y solo cuando en verdad es necesario.
                 cameraRotation = Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot);
             }
@@ -175,8 +216,24 @@ namespace TGC.Examples.Camara
             var cameraRotatedPositionEye = Vector3.TransformNormal(moveVector * elapsedTime, cameraRotation);
             positionEye += cameraRotatedPositionEye;
 
-            //TODO revisar! es para un plano
-            positionEye.Y = FixedHeight;
+            //IMPORTANTE - esta parte hardcodea los límites del mapa -- hay que rehacerla de alguna manera más copada
+            if (Falling && positionEye.Y > FixedHeight)
+            {
+                positionEye.Y = positionEye.Y - JumpSpeed * elapsedTime + 0.5f * Gravity * elapsedTime * elapsedTime;
+
+                if (positionEye.Y <= FixedHeight) Falling = false;
+
+            } else if (!Jumping && positionEye.Y > FixedHeight) {
+                positionEye.Y = FixedHeight;
+            } else if (positionEye.Y < FixedHeight)
+            {
+                positionEye.Y = FixedHeight;
+            }
+
+            if (MapXLimit != 0 && positionEye.X >= MapXLimit * .97f) positionEye.X = MapXLimit*.97f;
+            if (MapXNegLimit != 0 && positionEye.X <= MapXNegLimit * .97f) positionEye.X = MapXNegLimit * .97f;
+            if (MapZLimit != 0 && positionEye.Z >= MapZLimit * .97f) positionEye.Z = MapZLimit * .97f;
+            if (MapZNegLimit != 0 && positionEye.Z <= MapZNegLimit * .97f) positionEye.Z = MapZNegLimit * .97f;
 
             //Calculamos el target de la camara, segun su direccion inicial y las rotaciones en screen space x,y.
             var cameraRotatedTarget = Vector3.TransformNormal(directionView, cameraRotation);
