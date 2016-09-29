@@ -26,16 +26,16 @@ namespace TGC.Group.Model
         private List<TgcMesh> Trees;
         //lista de objetos del mapa
         private List<TgcMesh> Objetos;
-        //piso del mapa
-        private TgcPlane Floor;
         //skybox
         private TgcSkyBox SkyBox;
+        //piso del mapa
+        public TgcPlane Floor { get; set; }
         //mover skybox con cámara?
-        private bool MoveSkyBoxWithCamera;
+        public bool MoveSkyBoxWithCamera { get; set; }
         //longitud de cada lado del mapa
-        private int MapLength { get; set; }
-
-        private bool Optimizations { get; set; }
+        public int MapLength { get; set; }
+        //activar optimizaciones
+        public bool Optimizations { get; set; }
 
         /// <summary>
         /// 

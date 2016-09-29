@@ -16,6 +16,10 @@ namespace TGC.Examples.Camara
     /// </summary>
     public class TgcFpsCamera : TgcCamera
     {
+        //TODO por ahora clavo esto en 10 para evitar volar...
+        //TODO agregar efecto tipo gravedad
+        public float FixedHeight = 10;
+
         private readonly Point mouseCenter; //Centro de mause 2D para ocultarlo.
 
         //Se mantiene la matriz rotacion para no hacer este calculo cada vez.
@@ -170,6 +174,9 @@ namespace TGC.Examples.Camara
             //Calculamos la nueva posicion del ojo segun la rotacion actual de la camara.
             var cameraRotatedPositionEye = Vector3.TransformNormal(moveVector * elapsedTime, cameraRotation);
             positionEye += cameraRotatedPositionEye;
+
+            //TODO revisar! es para un plano
+            positionEye.Y = FixedHeight;
 
             //Calculamos el target de la camara, segun su direccion inicial y las rotaciones en screen space x,y.
             var cameraRotatedTarget = Vector3.TransformNormal(directionView, cameraRotation);

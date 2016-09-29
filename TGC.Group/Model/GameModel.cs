@@ -72,7 +72,7 @@ namespace TGC.Group.Model
         {
             PreUpdate();
 
-            //ConfigurarCamara();
+            //MyWorld.Floor.BoundingBox.
 
             MyWorld.update();
         }
