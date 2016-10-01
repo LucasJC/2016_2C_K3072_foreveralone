@@ -3,6 +3,7 @@ using Microsoft.DirectX.DirectInput;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using TGC.Core.Collision;
 using TGC.Core.Direct3D;
 using TGC.Core.Example;
 using TGC.Core.Geometry;
@@ -33,6 +34,15 @@ namespace TGC.Group.Model
         //mundo
         private World MyWorld;
 
+        //reproductor de sonidos
+        private SoundPlayer soundPlayer;
+
+        //para colisiones
+        private TgcPickingRay pickingRay;
+        private bool collided = false;
+        private Vector3 collisionPoint;
+        private InteractiveObject collidedObject = null;
+
         /// <summary>
         ///     Constructor del juego.
         /// </summary>
@@ -62,6 +72,12 @@ namespace TGC.Group.Model
             Camara = new TgcFpsCamera(Input, (mapLength / 2) , - (mapLength / 2), (mapLength / 2), -(mapLength / 2));
             //genero el mundo
             MyWorld = new World(MediaDir, d3dDevice, loader, Camara, mapLength);
+
+            //colisiones
+            pickingRay = new TgcPickingRay(Input);
+
+            //sonidos
+            soundPlayer = new SoundPlayer(DirectSound, MediaDir);
             
         }
 
@@ -73,10 +89,43 @@ namespace TGC.Group.Model
         public override void Update()
         {
             PreUpdate();
-
-            //MyWorld.Floor.BoundingBox.
+            //reinicio estado de colisiones
+            collided = false;
+            collidedObject = null;
 
             MyWorld.update();
+
+            if(Input.keyPressed(Key.E))
+            {
+                pickingRay.updateRay();
+
+                //de todos mis objetos veo si colisiona
+                //TODO acá debería traer los que están cercanos al usuario para optimizar - por ahora pruebo todos
+                foreach(InteractiveObject objeto in MyWorld.Objetos)
+                {
+                    collided = TgcCollisionUtils.intersectRayAABB(pickingRay.Ray, objeto.mesh.BoundingBox, out collisionPoint);
+                    if (collided)
+                    {
+                        collidedObject = objeto;
+                        break;
+                    }    
+                }
+                if(!collided)
+                {
+                    //veo si tocó un árbol
+                    foreach (InteractiveObject tree in MyWorld.Trees)
+                    {
+                        collided = TgcCollisionUtils.intersectRayAABB(pickingRay.Ray, tree.mesh.BoundingBox, out collisionPoint);
+                        if (collided)
+                        {
+                            collidedObject = tree;
+                            break;
+                        }
+                    }
+                }
+
+            }
+
         }
 
         /// <summary>
@@ -93,7 +142,21 @@ namespace TGC.Group.Model
             DrawText.drawText("W, A, S, D ←, →, ↑, ↓", 0, 20, Color.DarkSalmon);
             DrawText.drawText("Camera: " + Camara.Position.X + "," + Camara.Position.Y + "," + Camara.Position.Z, 0, 40, Color.DarkOrange);
             MyWorld.render();
-
+            
+            if(null != collidedObject)
+            {
+                //un objeto fue objetivo de una acción
+                soundPlayer.playMaterialSound(collidedObject.material);
+                if (collidedObject.getHit(1))
+                {
+                    //si al pegarle al objeto lo dejo sin puntos de vida, lo elimino del mundo
+                    if(collidedObject.objectType == InteractiveObject.ObjectTypes.Tree)
+                    {
+                        soundPlayer.playActionSound(SoundPlayer.Actions.TreeFall);
+                    }
+                    MyWorld.destroyObject(collidedObject);
+                }
+            }
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
         }

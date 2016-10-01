@@ -1,0 +1,55 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using TGC.Core.SceneLoader;
+
+namespace TGC.Group.Model
+{
+    /// <summary>
+    ///     Objeto con el cual el jugador puede interactuar
+    /// </summary>
+    class InteractiveObject
+    {
+        public enum Materials { Wood, Metal, Glass, Plant, None };
+
+        public enum ObjectTypes { Tree, Rock , Misc};
+
+        public TgcMesh mesh;
+        public int lifePoints { get; set; }
+        public String name { get; set; }
+        public bool selected { get; set; }
+        public Materials material;
+        public ObjectTypes objectType;
+
+        /// <summary>
+        ///     constructor
+        /// </summary>
+        public InteractiveObject(String name, int lifePoints, TgcMesh mesh, Materials material, ObjectTypes type)
+        {
+            this.name = name;
+            this.lifePoints = lifePoints;
+            this.mesh = mesh;
+            this.material = material;
+            this.objectType = type;
+        }
+
+        /// <summary>
+        ///     método que representa que el objeto es golpeado, por lo tanto pierde los puntos indicados
+        /// </summary>
+        /// <param name="points"></param>
+        /// <returns>devuelve true si el objeto fue destruído</returns>
+        public bool getHit(int points)
+        {
+            this.lifePoints -= points;
+            if(this.lifePoints <= 0)
+            {
+                return true;
+            }else
+            {
+                return false;
+            }
+        }
+    }
+}

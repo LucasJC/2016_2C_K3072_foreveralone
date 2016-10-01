@@ -168,6 +168,7 @@ namespace TGC.Group.Form
             catch (Exception e)
             {
                 MessageBox.Show(e.Message, "Error en Init() del juego", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Console.WriteLine(e.ToString());
             }
         }
 

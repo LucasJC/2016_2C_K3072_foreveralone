@@ -64,6 +64,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\Windows\Microsoft.NET\DirectX for Managed Code\1.0.2902.0\Microsoft.DirectX.DirectInput.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.DirectX.DirectSound, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="Microsoft.VisualC" />
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
@@ -85,7 +86,9 @@
       <DependentUpon>Game.settings</DependentUpon>
     </Compile>
     <Compile Include="Model\GameModel.cs" />
+    <Compile Include="Model\InteractiveObject.cs" />
     <Compile Include="Model\Renderable.cs" />
+    <Compile Include="Model\SoundPlayer.cs" />
     <Compile Include="Model\TgcFpsCamera.cs" />
     <Compile Include="Model\World.cs" />
     <Compile Include="Program.cs" />

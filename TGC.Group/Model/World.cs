@@ -23,9 +23,9 @@ namespace TGC.Group.Model
         private TgcCamera Camera;
 
         //lista de árboles
-        private List<TgcMesh> Trees;
+        public List<InteractiveObject> Trees { get; set; }
         //lista de objetos del mapa
-        private List<TgcMesh> Objetos;
+        public List<InteractiveObject> Objetos { get; set; }
         //skybox
         private TgcSkyBox SkyBox;
         //piso del mapa
@@ -80,18 +80,19 @@ namespace TGC.Group.Model
             SkyBox.render();
             Floor.render();
 
-            foreach (TgcMesh mesh in Trees)
+            foreach (InteractiveObject tree in Trees)
             {
-                mesh.Transform = Matrix.Scaling(mesh.Scale) * Matrix.Translation(mesh.Position);
-                mesh.AlphaBlendEnable = true;
-                mesh.render();
+                tree.mesh.Transform = Matrix.Scaling(tree.mesh.Scale) * Matrix.Translation(tree.mesh.Position);
+                tree.mesh.updateBoundingBox();
+                tree.mesh.render();
                 
             }
 
-            foreach (TgcMesh mesh in Objetos)
+            foreach (InteractiveObject objecto in Objetos)
             {
-                mesh.Transform = Matrix.Scaling(mesh.Scale) * Matrix.Translation(mesh.Position);
-                mesh.render();
+                objecto.mesh.Transform = Matrix.Scaling(objecto.mesh.Scale) * Matrix.Translation(objecto.mesh.Position);
+                objecto.mesh.updateBoundingBox();
+                objecto.mesh.render();
             }
         }
 
@@ -100,9 +101,28 @@ namespace TGC.Group.Model
         /// </summary>
         public void dispose()
         {
-            foreach (TgcMesh element in Trees)
+            foreach (InteractiveObject element in Trees)
             {
-                element.dispose();
+                element.mesh.dispose();
+            }
+            foreach (InteractiveObject element in Objetos)
+            {
+                element.mesh.dispose();
+            }
+        }
+
+        /// <summary>
+        ///     elimina un objeto del mundo
+        /// </summary>
+        /// <param name="objeto"></param>
+        public void destroyObject(InteractiveObject objeto)
+        {
+            if (this.Objetos.Contains(objeto))
+            {
+                this.Objetos.Remove(objeto);
+            }
+            else{
+                if(this.Trees.Contains(objeto)) this.Trees.Remove(objeto);
             }
         }
 
@@ -113,7 +133,7 @@ namespace TGC.Group.Model
         {
             //armo el piso con un plano
             var floorTexture = TgcTexture.createTexture(Device, MediaDir + "Textures\\pasto.jpg");
-            Floor = new TgcPlane(new Vector3(-(MapLength / 2), 0, -(MapLength / 2)), new Vector3(MapLength, 0, MapLength), TgcPlane.Orientations.XZplane, floorTexture, 10f, 10f);
+            Floor = new TgcPlane(new Vector3(-(MapLength / 2), 0, -(MapLength / 2)), new Vector3(MapLength, 0, MapLength), TgcPlane.Orientations.XZplane, floorTexture, 70f, 70f);
 
             //creo los árboles
             //loader.loadSceneFromFile(MediaDir + "Meshes\\ArbolBosque\\ArbolBosque-TgcScene.xml").Meshes[0];
@@ -124,12 +144,12 @@ namespace TGC.Group.Model
 
         private void CreateObjects()
         {
-            TgcMesh teapot = Loader.loadSceneFromFile(MediaDir + "Meshes\\Teapot\\Teapot-TgcScene.xml").Meshes[0];
-            teapot.Scale = new Vector3(0.5f, 0.5f, 0.5f);
-            teapot.updateBoundingBox();
-            teapot.Position = new Vector3(0, teapot.BoundingBox.PMax.Y * 0.75f, 0);
-            Objetos = new List<TgcMesh>();
-            Objetos.Add(teapot);
+            TgcMesh teapotMesh = Loader.loadSceneFromFile(MediaDir + "Meshes\\Teapot\\Teapot-TgcScene.xml").Meshes[0];
+            teapotMesh.Scale = new Vector3(0.5f, 0.5f, 0.5f);
+            //teapot.updateBoundingBox();
+            teapotMesh.Position = new Vector3(0, teapotMesh.BoundingBox.PMax.Y * 0.75f, 0);
+            Objetos = new List<InteractiveObject>();
+            Objetos.Add(new InteractiveObject("teapot", 2, teapotMesh, InteractiveObject.Materials.Glass, InteractiveObject.ObjectTypes.Misc));
         }
 
         /// <summary>
@@ -174,7 +194,7 @@ namespace TGC.Group.Model
 
             Random rnd = new Random();
 
-            Trees = new List<TgcMesh>();
+            Trees = new List<InteractiveObject>();
 
             TgcMesh instance;
             float scale;
@@ -186,8 +206,8 @@ namespace TGC.Group.Model
                 if (scale < 0.3f) scale = 0.3f;
                 instance.Scale = new Vector3(scale, scale, scale);
                 instance.Position = new Vector3(rnd.Next(0, MapLength) - MapLength / 2, 0, rnd.Next(0, MapLength) - MapLength / 2);
-                
-                Trees.Add(instance);
+                instance.AlphaBlendEnable = true;
+                Trees.Add(new InteractiveObject("Tree", 5, instance, InteractiveObject.Materials.Wood, InteractiveObject.ObjectTypes.Tree));
             }
         }
 
