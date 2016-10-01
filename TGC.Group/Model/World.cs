@@ -1,4 +1,5 @@
 ﻿using Microsoft.DirectX;
+using Microsoft.DirectX.Direct3D;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +37,8 @@ namespace TGC.Group.Model
         public int MapLength { get; set; }
         //activar optimizaciones
         public bool Optimizations { get; set; }
+        //effects
+        public Effect lightEffect { get; set; } = null;
 
         /// <summary>
         /// 
@@ -108,6 +111,28 @@ namespace TGC.Group.Model
             foreach (InteractiveObject element in Objetos)
             {
                 element.mesh.dispose();
+            }
+        }
+
+        public void updateEffects()
+        {
+            if(null != this.lightEffect)
+            {
+                String effectTechnique = "RenderScene";
+
+                foreach(InteractiveObject objeto in Trees)
+                {
+                    objeto.mesh.Effect = lightEffect;
+                    objeto.mesh.Technique = effectTechnique;
+                }
+                foreach (InteractiveObject objeto in Objetos)
+                {
+                    objeto.mesh.Effect = lightEffect;
+                    objeto.mesh.Technique = effectTechnique;
+                }
+
+                this.Floor.Effect = lightEffect;
+                this.Floor.Technique = effectTechnique;
             }
         }
 

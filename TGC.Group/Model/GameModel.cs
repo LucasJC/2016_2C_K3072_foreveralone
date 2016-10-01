@@ -1,5 +1,4 @@
 ﻿using Microsoft.DirectX;
-using Microsoft.DirectX.DirectInput;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -7,8 +6,11 @@ using TGC.Core.Collision;
 using TGC.Core.Direct3D;
 using TGC.Core.Example;
 using TGC.Core.Geometry;
+using TGC.Core.Input;
 using TGC.Core.SceneLoader;
+using TGC.Core.Shaders;
 using TGC.Core.Terrain;
+using TGC.Core.Text;
 using TGC.Core.Textures;
 using TGC.Core.Utils;
 using TGC.Examples.Camara;
@@ -23,6 +25,8 @@ namespace TGC.Group.Model
     /// </summary>
     public class GameModel : TgcExample
     {
+        //tiempo
+        private float time = 0;
         //Directx device
         Microsoft.DirectX.Direct3D.Device d3dDevice;
         //Loader del framework
@@ -37,11 +41,15 @@ namespace TGC.Group.Model
         //reproductor de sonidos
         private SoundPlayer soundPlayer;
 
+        //shaders
+        private Microsoft.DirectX.Direct3D.Effect lightEffect;
+
         //para colisiones
         private TgcPickingRay pickingRay;
         private bool collided = false;
         private Vector3 collisionPoint;
         private InteractiveObject collidedObject = null;
+        private TgcText2D Message;
 
         /// <summary>
         ///     Constructor del juego.
@@ -65,6 +73,9 @@ namespace TGC.Group.Model
         {
             //Device de DirectX para crear primitivas.
             d3dDevice = D3DDevice.Instance.Device;
+            //Shaders
+            lightEffect = TgcShaders.loadEffect(ShadersDir + "CustomLightShader.fx");
+
             //Instancio el loader del framework
             loader = new TgcSceneLoader();
             int mapLength = 2000;
@@ -73,12 +84,19 @@ namespace TGC.Group.Model
             //genero el mundo
             MyWorld = new World(MediaDir, d3dDevice, loader, Camara, mapLength);
 
+            MyWorld.lightEffect = lightEffect;
+            MyWorld.updateEffects();
+
             //colisiones
             pickingRay = new TgcPickingRay(Input);
-
             //sonidos
             soundPlayer = new SoundPlayer(DirectSound, MediaDir);
-            
+
+            Message = new TgcText2D();
+            Message.changeFont(new Font(FontFamily.GenericMonospace, 20, FontStyle.Bold));
+            Message.Color = Color.Aqua;
+            Message.Align = TgcText2D.TextAlign.RIGHT;
+
         }
 
         /// <summary>
@@ -95,18 +113,24 @@ namespace TGC.Group.Model
 
             MyWorld.update();
 
-            if(Input.keyPressed(Key.E))
+            //TODO pasar esto a un método
+            if(Input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
                 pickingRay.updateRay();
 
                 //de todos mis objetos veo si colisiona
-                //TODO acá debería traer los que están cercanos al usuario para optimizar - por ahora pruebo todos
+                //TODO acá debería traer los que están cercanos al usuario - Por ahora pruebo todos
                 foreach(InteractiveObject objeto in MyWorld.Objetos)
                 {
                     collided = TgcCollisionUtils.intersectRayAABB(pickingRay.Ray, objeto.mesh.BoundingBox, out collisionPoint);
                     if (collided)
                     {
                         collidedObject = objeto;
+                        if (collidedObject.getHit(1))
+                        {
+                            MyWorld.destroyObject(collidedObject);
+                        }
+                        Message.Text = "Objeto: " + collidedObject.name + " (" + collidedObject.lifePoints + ")";
                         break;
                     }    
                 }
@@ -119,6 +143,11 @@ namespace TGC.Group.Model
                         if (collided)
                         {
                             collidedObject = tree;
+                            if (collidedObject.getHit(1))
+                            {
+                                MyWorld.destroyObject(collidedObject);
+                            }
+                            Message.Text = "Objeto: " + collidedObject.name + " (" + collidedObject.lifePoints + ")";
                             break;
                         }
                     }
@@ -138,23 +167,29 @@ namespace TGC.Group.Model
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
+            time += ElapsedTime;
+
+            //Variables para el shader
+            lightEffect.SetValue("time", time);
+
             //Dibuja un texto por pantalla
-            DrawText.drawText("W, A, S, D ←, →, ↑, ↓", 0, 20, Color.DarkSalmon);
+            DrawText.drawText("W, A, S, D ←, →, CLICK", 0, 20, Color.DarkSalmon);
             DrawText.drawText("Camera: " + Camara.Position.X + "," + Camara.Position.Y + "," + Camara.Position.Z, 0, 40, Color.DarkOrange);
+
+            Message.render();
             MyWorld.render();
             
             if(null != collidedObject)
             {
                 //un objeto fue objetivo de una acción
                 soundPlayer.playMaterialSound(collidedObject.material);
-                if (collidedObject.getHit(1))
+                if (collidedObject.alive)
                 {
-                    //si al pegarle al objeto lo dejo sin puntos de vida, lo elimino del mundo
+                    //el objeto debe ser eliminado
                     if(collidedObject.objectType == InteractiveObject.ObjectTypes.Tree)
                     {
                         soundPlayer.playActionSound(SoundPlayer.Actions.TreeFall);
                     }
-                    MyWorld.destroyObject(collidedObject);
                 }
             }
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene

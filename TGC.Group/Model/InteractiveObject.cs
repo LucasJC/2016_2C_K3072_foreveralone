@@ -22,6 +22,7 @@ namespace TGC.Group.Model
         public bool selected { get; set; }
         public Materials material;
         public ObjectTypes objectType;
+        public bool alive = true;
 
         /// <summary>
         ///     constructor
@@ -45,6 +46,7 @@ namespace TGC.Group.Model
             this.lifePoints -= points;
             if(this.lifePoints <= 0)
             {
+                this.alive = false;
                 return true;
             }else
             {

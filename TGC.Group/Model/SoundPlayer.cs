@@ -42,7 +42,7 @@ namespace TGC.Group.Model
             //TgcStaticSound plantSound = new TgcStaticSound();
             //glassSound.loadSound(SoundsPath + "Materials\\plant.wav", directSound.DsDevice);
             TgcStaticSound woodSound = new TgcStaticSound();
-            glassSound.loadSound(SoundsPath + "Materials\\wood.wav", directSound.DsDevice);
+            woodSound.loadSound(SoundsPath + "Materials\\wood.wav", directSound.DsDevice);
             TgcStaticSound noneSound = new TgcStaticSound();
             glassSound.loadSound(SoundsPath + "Materials\\default.wav", directSound.DsDevice);
  

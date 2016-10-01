@@ -69,6 +69,8 @@ namespace TGC.Examples.Camara
             this.MapXNegLimit = mapXNegLimit;
             this.MapZLimit = mapZLimit;
             this.MapZNegLimit = mapZNegLimit;
+            this.lockCam = true;
+            Cursor.Hide();
         }
 
         public TgcFpsCamera(Vector3 positionEye, TgcD3dInput input) : this(input)
