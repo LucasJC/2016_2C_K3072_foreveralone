@@ -87,6 +87,7 @@
       <DependentUpon>Game.settings</DependentUpon>
     </Compile>
     <Compile Include="Model\GameModel.cs" />
+    <Compile Include="Model\GameUtils.cs" />
     <Compile Include="Model\InteractiveObject.cs" />
     <Compile Include="Model\Renderable.cs" />
     <Compile Include="Model\SoundPlayer.cs" />

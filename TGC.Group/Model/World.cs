@@ -157,7 +157,7 @@ namespace TGC.Group.Model
         private void CreateMap()
         {
             //armo el piso con un plano
-            var floorTexture = TgcTexture.createTexture(Device, MediaDir + "Textures\\pasto.jpg");
+            var floorTexture = TgcTexture.createTexture(Device, MediaDir + "Textures\\tierra.jpg");
             Floor = new TgcPlane(new Vector3(-(MapLength / 2), 0, -(MapLength / 2)), new Vector3(MapLength, 0, MapLength), TgcPlane.Orientations.XZplane, floorTexture, 70f, 70f);
 
             //creo los árboles
@@ -171,7 +171,6 @@ namespace TGC.Group.Model
         {
             TgcMesh teapotMesh = Loader.loadSceneFromFile(MediaDir + "Meshes\\Teapot\\Teapot-TgcScene.xml").Meshes[0];
             teapotMesh.Scale = new Vector3(0.5f, 0.5f, 0.5f);
-            //teapot.updateBoundingBox();
             teapotMesh.Position = new Vector3(0, teapotMesh.BoundingBox.PMax.Y * 0.75f, 0);
             Objetos = new List<InteractiveObject>();
             Objetos.Add(new InteractiveObject("teapot", 2, teapotMesh, InteractiveObject.Materials.Glass, InteractiveObject.ObjectTypes.Misc));
@@ -217,20 +216,17 @@ namespace TGC.Group.Model
         {
             TgcMesh tree = Loader.loadSceneFromFile(MediaDir + "Meshes\\Pino\\Pino-TgcScene.xml").Meshes[0];
 
-            Random rnd = new Random();
+            
 
             Trees = new List<InteractiveObject>();
 
             TgcMesh instance;
-            float scale;
 
             for (int i = 1; i <= cantidad; i++)
             {
                 instance = tree.createMeshInstance(tree.Name + "_" + i);
-                scale = (float)rnd.NextDouble();
-                if (scale < 0.3f) scale = 0.3f;
-                instance.Scale = new Vector3(scale, scale, scale);
-                instance.Position = new Vector3(rnd.Next(0, MapLength) - MapLength / 2, 0, rnd.Next(0, MapLength) - MapLength / 2);
+                instance.Scale = GameUtils.getRandomScaleVector();
+                instance.Position = GameUtils.getRandomPositionVector();
                 instance.AlphaBlendEnable = true;
                 Trees.Add(new InteractiveObject("Tree", 5, instance, InteractiveObject.Materials.Wood, InteractiveObject.ObjectTypes.Tree));
             }

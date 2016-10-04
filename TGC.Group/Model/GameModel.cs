@@ -50,6 +50,11 @@ namespace TGC.Group.Model
         private Vector3 collisionPoint;
         private InteractiveObject collidedObject = null;
         private TgcText2D Message;
+        
+        //Semilla para randoms
+        public static int RandomSeed { get; } = 666;
+        //Dimensiones de cada cuadrante del mapa
+        public static int MapLength { get; } = 5000;
 
         /// <summary>
         ///     Constructor del juego.
@@ -78,14 +83,13 @@ namespace TGC.Group.Model
 
             //Instancio el loader del framework
             loader = new TgcSceneLoader();
-            int mapLength = 2000;
             //Inicializo cámara
-            Camara = new TgcFpsCamera(Input, (mapLength / 2) , - (mapLength / 2), (mapLength / 2), -(mapLength / 2));
+            Camara = new TgcFpsCamera(Input, (MapLength / 2) , - (MapLength / 2), (MapLength / 2), -(MapLength / 2));
             //genero el mundo
-            MyWorld = new World(MediaDir, d3dDevice, loader, Camara, mapLength);
+            MyWorld = new World(MediaDir, d3dDevice, loader, Camara, MapLength);
 
-            MyWorld.lightEffect = lightEffect;
-            MyWorld.updateEffects();
+            //MyWorld.lightEffect = lightEffect;
+            //MyWorld.updateEffects();
 
             //colisiones
             pickingRay = new TgcPickingRay(Input);

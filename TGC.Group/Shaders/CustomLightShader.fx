@@ -89,9 +89,9 @@ VS_OUTPUT vs_main2(VS_INPUT Input)
 	// Animar color
 	//Input.Color.r = abs(sin(time));
 	//Input.Color.g = abs(cos(time));
-	Input.Color.r = 0.8;
-	Input.Color.g = 0.8;
-	Input.Color.b = 1;
+	//Input.Color.r = 0.8;
+	//Input.Color.g = 0.8;
+	//Input.Color.b = 1;
 
 	//Propago el color x vertice
 	Output.Color = Input.Color;
