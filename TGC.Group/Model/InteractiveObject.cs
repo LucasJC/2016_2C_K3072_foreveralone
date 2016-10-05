@@ -10,7 +10,7 @@ namespace TGC.Group.Model
     /// <summary>
     ///     Objeto con el cual el jugador puede interactuar
     /// </summary>
-    class InteractiveObject
+    public class InteractiveObject
     {
         public enum Materials { Wood, Metal, Glass, Plant, None };
 

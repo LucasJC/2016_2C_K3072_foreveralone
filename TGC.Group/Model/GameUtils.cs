@@ -10,7 +10,7 @@ namespace TGC.Group.Model
     /// <summary>
     ///     Clase utilitaria
     /// </summary>
-    class GameUtils
+    public class GameUtils
     {
         //Random
         public static Random Rand { get; } = new Random(GameModel.RandomSeed);

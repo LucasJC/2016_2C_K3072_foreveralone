@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TGC.Core.BoundingVolumes;
 using TGC.Core.Camara;
 using TGC.Core.Geometry;
 using TGC.Core.SceneLoader;
 using TGC.Core.Terrain;
 using TGC.Core.Textures;
+using TGC.Examples.Optimization.GrillaRegular;
 
 namespace TGC.Group.Model
 {
@@ -23,6 +25,7 @@ namespace TGC.Group.Model
         private TgcSceneLoader Loader;
         private TgcCamera Camera;
 
+        public TgcFrustum CameraFrustum { get; set; }
         //lista de árboles
         public List<InteractiveObject> Trees { get; set; }
         //lista de objetos del mapa
@@ -36,10 +39,11 @@ namespace TGC.Group.Model
         //longitud de cada lado del mapa
         public int MapLength { get; set; }
         //activar optimizaciones
-        public bool Optimizations { get; set; }
+        private bool Optimizations = false;
+        private GrillaRegular OptimizationGrid = new GrillaRegular();
         //effects
         public Effect lightEffect { get; set; } = null;
-
+        
         /// <summary>
         /// 
         ///     Constructor principal del Mundo
@@ -49,17 +53,27 @@ namespace TGC.Group.Model
         /// <param name="device"></param>
         /// <param name="loader"></param>
         /// <param name="camera"></param>
-        public World(String mediaDir, Microsoft.DirectX.Direct3D.Device device, TgcSceneLoader loader, TgcCamera camera, int mapLength)
+        public World(String mediaDir, Microsoft.DirectX.Direct3D.Device device, TgcSceneLoader loader, TgcCamera camera, TgcFrustum frustum, int mapLength, bool optimizations)
         {
             MediaDir = mediaDir;
             Device = device;
             Loader = loader;
             Camera = camera;
+            CameraFrustum = frustum;
             MapLength = mapLength;
-            Optimizations = false;
+            Optimizations = optimizations;
 
             CreateMap();
             CreateSkyBox();
+
+            if(Optimizations)
+            {
+                TgcBox box = new TgcBox();
+                box.Size = new Vector3(Floor.Size.X, 500, Floor.Size.Z);
+                OptimizationGrid.create(Trees, box.BoundingBox);
+                OptimizationGrid.createDebugMeshes();
+            }
+
         }
 
         /// <summary>
@@ -83,20 +97,29 @@ namespace TGC.Group.Model
             SkyBox.render();
             Floor.render();
 
-            foreach (InteractiveObject tree in Trees)
+            if(Optimizations)
             {
-                tree.mesh.Transform = Matrix.Scaling(tree.mesh.Scale) * Matrix.Translation(tree.mesh.Position);
-                tree.mesh.updateBoundingBox();
-                tree.mesh.render();
-                
+                OptimizationGrid.render(CameraFrustum, false);
+
+                foreach (InteractiveObject objecto in Objetos)
+                {
+                    objecto.mesh.render();
+                }
+            }
+            else
+            {
+                foreach (InteractiveObject tree in Trees)
+                {
+                    tree.mesh.render();
+                }
+
+                foreach (InteractiveObject objecto in Objetos)
+                {
+                    objecto.mesh.render();
+                }
             }
 
-            foreach (InteractiveObject objecto in Objetos)
-            {
-                objecto.mesh.Transform = Matrix.Scaling(objecto.mesh.Scale) * Matrix.Translation(objecto.mesh.Position);
-                objecto.mesh.updateBoundingBox();
-                objecto.mesh.render();
-            }
+
         }
 
         /// <summary>
@@ -172,6 +195,8 @@ namespace TGC.Group.Model
             TgcMesh teapotMesh = Loader.loadSceneFromFile(MediaDir + "Meshes\\Teapot\\Teapot-TgcScene.xml").Meshes[0];
             teapotMesh.Scale = new Vector3(0.5f, 0.5f, 0.5f);
             teapotMesh.Position = new Vector3(0, teapotMesh.BoundingBox.PMax.Y * 0.75f, 0);
+            teapotMesh.Transform = Matrix.Scaling(teapotMesh.Scale) * Matrix.Translation(teapotMesh.Position);
+            teapotMesh.updateBoundingBox();
             Objetos = new List<InteractiveObject>();
             Objetos.Add(new InteractiveObject("teapot", 2, teapotMesh, InteractiveObject.Materials.Glass, InteractiveObject.ObjectTypes.Misc));
         }
@@ -227,6 +252,8 @@ namespace TGC.Group.Model
                 instance = tree.createMeshInstance(tree.Name + "_" + i);
                 instance.Scale = GameUtils.getRandomScaleVector();
                 instance.Position = GameUtils.getRandomPositionVector();
+                instance.Transform = Matrix.Scaling(instance.Scale) * Matrix.Translation(instance.Position);
+                instance.updateBoundingBox();
                 instance.AlphaBlendEnable = true;
                 Trees.Add(new InteractiveObject("Tree", 5, instance, InteractiveObject.Materials.Wood, InteractiveObject.ObjectTypes.Tree));
             }

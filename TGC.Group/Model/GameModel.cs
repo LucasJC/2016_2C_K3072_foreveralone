@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using TGC.Core.BoundingVolumes;
 using TGC.Core.Collision;
 using TGC.Core.Direct3D;
 using TGC.Core.Example;
@@ -85,8 +86,10 @@ namespace TGC.Group.Model
             loader = new TgcSceneLoader();
             //Inicializo cámara
             Camara = new TgcFpsCamera(Input, (MapLength / 2) , - (MapLength / 2), (MapLength / 2), -(MapLength / 2));
+
+            Frustum.updateVolume(D3DDevice.Instance.Device.Transform.View, D3DDevice.Instance.Device.Transform.Projection);
             //genero el mundo
-            MyWorld = new World(MediaDir, d3dDevice, loader, Camara, MapLength);
+            MyWorld = new World(MediaDir, d3dDevice, loader, Camara, Frustum, MapLength, true);
 
             //MyWorld.lightEffect = lightEffect;
             //MyWorld.updateEffects();
