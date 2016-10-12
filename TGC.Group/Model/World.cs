@@ -185,7 +185,7 @@ namespace TGC.Group.Model
 
             //creo los árboles
             //loader.loadSceneFromFile(MediaDir + "Meshes\\ArbolBosque\\ArbolBosque-TgcScene.xml").Meshes[0];
-            CreateTrees(200);
+            CreateTrees(500);
             //creo otros objetos
             CreateObjects();
         }

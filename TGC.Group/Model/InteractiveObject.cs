@@ -13,7 +13,6 @@ namespace TGC.Group.Model
     public class InteractiveObject
     {
         public enum Materials { Wood, Metal, Glass, Plant, None };
-
         public enum ObjectTypes { Tree, Rock , Misc};
 
         public TgcMesh mesh;

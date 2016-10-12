@@ -91,6 +91,9 @@
     <Compile Include="Model\GrillaRegular.cs" />
     <Compile Include="Model\GrillaRegularNode.cs" />
     <Compile Include="Model\InteractiveObject.cs" />
+    <Compile Include="Model\InventoryObject.cs" />
+    <Compile Include="Model\ObjectCombination.cs" />
+    <Compile Include="Model\Player.cs" />
     <Compile Include="Model\Renderable.cs" />
     <Compile Include="Model\SoundPlayer.cs" />
     <Compile Include="Model\TgcFpsCamera.cs" />
