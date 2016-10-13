@@ -50,7 +50,7 @@ namespace TGC.Examples.Camara
             mouseCenter = new Point(
                 D3DDevice.Instance.Device.Viewport.Width / 2,
                 D3DDevice.Instance.Device.Viewport.Height / 2);
-            RotationSpeed = 0.0025f;
+            RotationSpeed = 0.0015f;
             MouseRotationSpeed = 0.01f;
             WalkingSpeed = 75f;
             RunningSpeed = 150f;
@@ -188,18 +188,6 @@ namespace TGC.Examples.Camara
             if (Input.keyPressed(Key.L) || Input.keyPressed(Key.Escape))
             {
                 LockCam = !lockCam;
-            }
-
-            if(Input.keyDown(Key.LeftArrow))
-            {
-                leftrightRot -= FastMath.PI_HALF * RotationSpeed;
-                cameraRotation = Matrix.RotationY(leftrightRot);
-            }
-
-            if (Input.keyDown(Key.RightArrow))
-            {
-                leftrightRot += FastMath.PI_HALF * RotationSpeed;
-                cameraRotation = Matrix.RotationY(leftrightRot);
             }
 
             //Solo rotar si se esta aprentando el boton izq del mouse

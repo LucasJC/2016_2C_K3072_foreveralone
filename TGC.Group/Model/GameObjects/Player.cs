@@ -39,12 +39,29 @@ namespace TGC.Group.Model
         /// <summary>
         ///     elementos del inventario
         /// </summary>
-        public List<InventoryObject> Inventory { get; set; } = new List<InventoryObject>();
+        public SortedList<int, InventoryObject> Inventory { get; set; } = new SortedList<int, InventoryObject>();
+
+        private int inventoryIndexCounter = 0;
 
         /// <summary>
         ///     tamaño del inventario, indica el máximo
         /// </summary>
         private int InventorySize = 10;
+
+        /// <summary>
+        ///     item seleccionado
+        /// </summary>
+        public InventoryObject SelectedItem { set; get; }
+
+        /// <summary>
+        ///     index del item seleccionado
+        /// </summary>
+        public int SelectedItemIndex { set; get; }
+
+        /// <summary>
+        ///     items seleccionados para combinación
+        /// </summary>
+        public List<InventoryObject> combinationSelection = new List<InventoryObject>();
 
         /// <summary>
         ///     indica si el jugador está vivo
@@ -70,7 +87,15 @@ namespace TGC.Group.Model
         {
             if(this.Inventory.Count < this.InventorySize)
             {
-                this.Inventory.Add(newObject);
+                inventoryIndexCounter++;
+                newObject.InventoryIndex = inventoryIndexCounter;
+                this.Inventory.Add(newObject.InventoryIndex, newObject);
+                if(this.Inventory.Count == 1)
+                {
+                    //primer objeto levantado -> lo pongo como seleccionado
+                    SelectedItem = newObject;
+                    SelectedItemIndex = newObject.InventoryIndex;
+                }
                 return true;
             }else
             {
@@ -83,7 +108,38 @@ namespace TGC.Group.Model
         /// </summary>
         /// <param name="objectToRemove"></param>
         public void removeInventoryObject(InventoryObject objectToRemove) {
-            this.Inventory.Remove(objectToRemove);
+            this.Inventory.Remove(objectToRemove.InventoryIndex);
+            if (EquippedObject == objectToRemove)
+            {
+                EquippedObject = null;
+            }
+            if (SelectedItem == objectToRemove)
+            {
+                SelectedItem = null;
+
+                if (Inventory.Count == 1)
+                {
+                    SelectedItem = Inventory.First().Value;
+                    SelectedItemIndex = SelectedItem.InventoryIndex;
+                } else
+                {
+                    selectNextItem();
+                    if (null == SelectedItem)
+                    {
+                        selectPreviousItem();
+                    }
+                }
+            }
+            if(combinationSelection.Contains(objectToRemove))
+            {
+                combinationSelection.Remove(objectToRemove);
+            }
+
+            //si no tengo más items, reinicio el contador de objetos
+            if (0 == Inventory.Count)
+            {
+                inventoryIndexCounter = 0;
+            }
         }
 
         /// <summary>
@@ -115,6 +171,106 @@ namespace TGC.Group.Model
                 damage = this.EquippedObject.Damage;
             }
             return damage;
+        }
+
+        /// <summary>
+        ///     intenta seleccionar el item siguiente al actual
+        /// </summary>
+        public void selectNextItem()
+        {
+            if(Inventory.Count > 1 && SelectedItemIndex < inventoryIndexCounter)
+            {
+                InventoryObject result = null;
+                int i = SelectedItemIndex;
+                while(i <= inventoryIndexCounter)
+                {
+                    i++;
+                    result = getItemByIndex(i);
+                    if(null != result)
+                    {
+                        SelectedItemIndex = i;
+                        SelectedItem = result;
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        ///     agrega un item a la selección de combinación
+        /// </summary>
+        /// <param name="selectedItem"></param>
+        public void selectForCombination(InventoryObject selectedItem)
+        {
+            if(!this.combinationSelection.Contains(selectedItem))
+            {
+                combinationSelection.Add(selectedItem);
+            }else
+            {
+                combinationSelection.Remove(selectedItem);
+            }
+        }
+
+        /// <summary>
+        ///     intenta seleccionar el item previo al actual
+        /// </summary>
+        public void selectPreviousItem()
+        {
+            if (SelectedItemIndex > 1 && Inventory.Count > 1)
+            {
+                InventoryObject result = null;
+                int i = SelectedItemIndex;
+                while (i > 1)
+                {
+                    i--;
+                    result = getItemByIndex(i);
+                    if (null != result)
+                    {
+                        SelectedItemIndex = i;
+                        SelectedItem = result;
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        ///     equipa o desequipa el item actual (toggle)
+        /// </summary>
+        public void equipSelectedItem()
+        {
+            if(null != SelectedItem)
+            {
+                if (EquippedObject == SelectedItem)
+                {
+                    EquippedObject = null;
+                }
+                else
+                {
+                    EquippedObject = SelectedItem;
+                }
+            }
+        }
+
+        /// <summary>
+        ///     devuelve un item del inventario por su índice
+        /// </summary>
+        /// <param name="itemIndex"></param>
+        /// <returns></returns>
+        private InventoryObject getItemByIndex(int itemIndex)
+        {
+            InventoryObject result = null;
+
+            foreach(KeyValuePair<int,InventoryObject> item in Inventory)
+            {
+                if(itemIndex == item.Value.InventoryIndex)
+                {
+                    result = item.Value;
+                    break;
+                }
+            }
+
+            return result;
         }
     }
 }

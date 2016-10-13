@@ -15,11 +15,11 @@ namespace TGC.Examples.Optimization.GrillaRegular
     /// </summary>
     public class GrillaRegular
     {
-        private readonly float CELL_HEIGHT = 500;
-        private readonly float CELL_LENGTH = 500;
+        private readonly float CELL_HEIGHT = 200;
+        private readonly float CELL_LENGTH = 400;
 
         //Tamaños de celda de la grilla
-        private readonly float CELL_WIDTH = 500;
+        private readonly float CELL_WIDTH = 400;
 
         private List<TgcBoxDebug> debugBoxes;
         private GrillaRegularNode[,,] grid;

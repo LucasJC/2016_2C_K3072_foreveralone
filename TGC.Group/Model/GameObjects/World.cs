@@ -28,8 +28,6 @@ namespace TGC.Group.Model
         private TgcCamera Camera;
 
         public TgcFrustum CameraFrustum { get; set; }
-        //lista de árboles
-        public List<InteractiveObject> Trees { get; set; }
         //lista de objetos del mapa
         public List<InteractiveObject> Objetos { get; set; }
         //skybox
@@ -71,8 +69,9 @@ namespace TGC.Group.Model
             if(Optimizations)
             {
                 TgcBox box = new TgcBox();
-                box.Size = new Vector3(Floor.Size.X, 500, Floor.Size.Z);
-                OptimizationGrid.create(Trees, box.BoundingBox);
+                box.Size = new Vector3(Floor.Size.X, 100, Floor.Size.Z);
+
+                OptimizationGrid.create(Objetos, box.BoundingBox);
                 OptimizationGrid.createDebugMeshes();
             }
 
@@ -102,26 +101,14 @@ namespace TGC.Group.Model
             if(Optimizations)
             {
                 OptimizationGrid.render(CameraFrustum, false);
-
-                foreach (InteractiveObject objecto in Objetos)
-                {
-                    objecto.mesh.render();
-                }
             }
             else
             {
-                foreach (InteractiveObject tree in Trees)
+                foreach (InteractiveObject objeto in Objetos)
                 {
-                    tree.mesh.render();
-                }
-
-                foreach (InteractiveObject objecto in Objetos)
-                {
-                    objecto.mesh.render();
+                    objeto.mesh.render();
                 }
             }
-
-
         }
 
         /// <summary>
@@ -129,10 +116,6 @@ namespace TGC.Group.Model
         /// </summary>
         public void dispose()
         {
-            foreach (InteractiveObject element in Trees)
-            {
-                element.mesh.dispose();
-            }
             foreach (InteractiveObject element in Objetos)
             {
                 element.mesh.dispose();
@@ -145,11 +128,6 @@ namespace TGC.Group.Model
             {
                 String effectTechnique = "RenderScene";
 
-                foreach(InteractiveObject objeto in Trees)
-                {
-                    objeto.mesh.Effect = lightEffect;
-                    objeto.mesh.Technique = effectTechnique;
-                }
                 foreach (InteractiveObject objeto in Objetos)
                 {
                     objeto.mesh.Effect = lightEffect;
@@ -171,9 +149,6 @@ namespace TGC.Group.Model
             {
                 this.Objetos.Remove(objeto);
             }
-            else{
-                if(this.Trees.Contains(objeto)) this.Trees.Remove(objeto);
-            }
         }
 
         /// <summary>
@@ -186,23 +161,13 @@ namespace TGC.Group.Model
             Floor = new TgcPlane(new Vector3(-(MapLength / 2), 0, -(MapLength / 2)), new Vector3(MapLength, 0, MapLength), TgcPlane.Orientations.XZplane, floorTexture, 70f, 70f);
 
             //creo los árboles
-            //loader.loadSceneFromFile(MediaDir + "Meshes\\ArbolBosque\\ArbolBosque-TgcScene.xml").Meshes[0];
-            CreateTrees(500);
+            CreateTrees(250);
+            //creo rocas
+            CreateRocks(100);
+            //creo pasto
+            CreateGrass(500);
             //creo otros objetos
             CreateObjects();
-        }
-
-        private void CreateObjects()
-        {
-            TgcMesh teapotMesh = Loader.loadSceneFromFile(MediaDir + "Meshes\\Teapot\\Teapot-TgcScene.xml").Meshes[0];
-            teapotMesh.Scale = new Vector3(0.5f, 0.5f, 0.5f);
-            teapotMesh.Position = new Vector3(0, teapotMesh.BoundingBox.PMax.Y * 0.75f, 0);
-            teapotMesh.Transform = Matrix.Scaling(teapotMesh.Scale) * Matrix.Translation(teapotMesh.Position);
-            teapotMesh.updateBoundingBox();
-            Objetos = new List<InteractiveObject>();
-            InteractiveObject interactiveObject = new InteractiveObject("teapot", 2, teapotMesh, InteractiveObject.Materials.Glass, InteractiveObject.ObjectTypes.Misc);
-            interactiveObject.drops.Add(InventoryObject.ObjectTypes.Potion);
-            Objetos.Add(interactiveObject);
         }
 
         /// <summary>
@@ -237,6 +202,20 @@ namespace TGC.Group.Model
             //Inicializa todos los valores para crear el SkyBox
             SkyBox.Init();
         }
+        // TODO modificar, por ahora es de ejemplo
+        private void CreateObjects()
+        {
+            TgcMesh teapotMesh = Loader.loadSceneFromFile(MediaDir + "Meshes\\Teapot\\Teapot-TgcScene.xml").Meshes[0];
+            teapotMesh.Scale = new Vector3(0.5f, 0.5f, 0.5f);
+            teapotMesh.Position = new Vector3(0, teapotMesh.BoundingBox.PMax.Y * 0.75f, 0);
+            teapotMesh.Transform = Matrix.Scaling(teapotMesh.Scale) * Matrix.Translation(teapotMesh.Position);
+            teapotMesh.updateBoundingBox();
+            if (null == Objetos) Objetos = new List<InteractiveObject>();
+            InteractiveObject interactiveObject = new InteractiveObject("teapot", 2, teapotMesh, InteractiveObject.Materials.Glass, InteractiveObject.ObjectTypes.Misc);
+            interactiveObject.drops.Add(InventoryObject.ObjectTypes.Water);
+            interactiveObject.drops.Add(InventoryObject.ObjectTypes.Water);
+            Objetos.Add(interactiveObject);
+        }
 
         /// <summary>
         ///     Genera la disposición de los árboles en el mapa
@@ -246,9 +225,7 @@ namespace TGC.Group.Model
         {
             TgcMesh tree = Loader.loadSceneFromFile(MediaDir + "Meshes\\Pino\\Pino-TgcScene.xml").Meshes[0];
 
-            
-
-            Trees = new List<InteractiveObject>();
+            if (null == Objetos) Objetos = new List<InteractiveObject>();
 
             TgcMesh instance;
 
@@ -263,7 +240,59 @@ namespace TGC.Group.Model
                 InteractiveObject interactiveObject = new InteractiveObject("Tree", 5, instance, InteractiveObject.Materials.Wood, InteractiveObject.ObjectTypes.Tree);
                 interactiveObject.drops.Add(InventoryObject.ObjectTypes.Wood);
                 interactiveObject.drops.Add(InventoryObject.ObjectTypes.Leaf);
-                Trees.Add(interactiveObject);
+                Objetos.Add(interactiveObject);
+            }
+        }
+
+        /// <summary>
+        ///     Genera las piedras en el mapa
+        /// </summary>
+        /// <param name="cantidad"></param>
+        private void CreateRocks(int cantidad)
+        {
+            TgcMesh rock = Loader.loadSceneFromFile(MediaDir + "Meshes\\Roca\\Roca-TgcScene.xml").Meshes[0];
+
+            if (null == Objetos) Objetos = new List<InteractiveObject>();
+
+            TgcMesh instance;
+
+            for (int i = 1; i <= cantidad; i++)
+            {
+                instance = rock.createMeshInstance(rock.Name + "_" + i);
+                instance.Scale = GameUtils.getRandomScaleVector() * 0.2f;
+                instance.Position = GameUtils.getRandomPositionVector();
+                instance.Transform = Matrix.Scaling(instance.Scale) * Matrix.Translation(instance.Position);
+                instance.updateBoundingBox();
+                //instance.AlphaBlendEnable = true;
+                InteractiveObject interactiveObject = new InteractiveObject("Rock", 1, instance, InteractiveObject.Materials.Rock, InteractiveObject.ObjectTypes.Rock);
+                interactiveObject.drops.Add(InventoryObject.ObjectTypes.Rock);
+                Objetos.Add(interactiveObject);
+            }
+        }
+
+        /// <summary>
+        ///     Genera el pasto en el mapa
+        /// </summary>
+        /// <param name="cantidad"></param>
+        private void CreateGrass(int cantidad)
+        {
+            TgcMesh grass = Loader.loadSceneFromFile(MediaDir + "Meshes\\Pasto\\Pasto-TgcScene.xml").Meshes[0];
+
+            if (null == Objetos) Objetos = new List<InteractiveObject>();
+
+            TgcMesh instance;
+
+            for (int i = 1; i <= cantidad; i++)
+            {
+                instance = grass.createMeshInstance(grass.Name + "_" + i);
+                instance.Scale = GameUtils.getRandomScaleVector();
+                instance.Position = GameUtils.getRandomPositionVector();
+                instance.Transform = Matrix.Scaling(instance.Scale) * Matrix.Translation(instance.Position);
+                instance.updateBoundingBox();
+                instance.AlphaBlendEnable = true;
+                InteractiveObject interactiveObject = new InteractiveObject("Grass", 1, instance, InteractiveObject.Materials.Plant, InteractiveObject.ObjectTypes.Misc);
+                interactiveObject.drops.Add(InventoryObject.ObjectTypes.Seed);
+                Objetos.Add(interactiveObject);
             }
         }
 

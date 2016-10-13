@@ -37,14 +37,14 @@ namespace TGC.Group.Model
             TgcStaticSound glassSound = new TgcStaticSound();
             glassSound.loadSound(SoundsPath + "Materials\\glass.wav", directSound.DsDevice);
             TgcStaticSound metalSound = new TgcStaticSound();
-            glassSound.loadSound(SoundsPath + "Materials\\metal.wav", directSound.DsDevice);
+            metalSound.loadSound(SoundsPath + "Materials\\metal.wav", directSound.DsDevice);
             //TODO buscar un sonido de planta, por ahora uso default
-            //TgcStaticSound plantSound = new TgcStaticSound();
-            //glassSound.loadSound(SoundsPath + "Materials\\plant.wav", directSound.DsDevice);
+            TgcStaticSound plantSound = new TgcStaticSound();
+            plantSound.loadSound(SoundsPath + "Materials\\default.wav", directSound.DsDevice);
             TgcStaticSound woodSound = new TgcStaticSound();
             woodSound.loadSound(SoundsPath + "Materials\\wood.wav", directSound.DsDevice);
             TgcStaticSound noneSound = new TgcStaticSound();
-            glassSound.loadSound(SoundsPath + "Materials\\default.wav", directSound.DsDevice);
+            noneSound.loadSound(SoundsPath + "Materials\\default.wav", directSound.DsDevice);
  
             MaterialSounds = new Dictionary<InteractiveObject.Materials, TgcStaticSound>();
             MaterialSounds.Add(InteractiveObject.Materials.Wood, woodSound);

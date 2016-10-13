@@ -59,5 +59,14 @@ namespace TGC.Group.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ..\..\Media\2D\splashScreen.png.
+        /// </summary>
+        internal static string splash {
+            get {
+                return ResourceManager.GetString("splash", resourceCulture);
+            }
+        }
     }
 }

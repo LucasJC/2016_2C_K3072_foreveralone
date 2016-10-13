@@ -1,4 +1,5 @@
 ﻿using Microsoft.DirectX;
+using Microsoft.DirectX.DirectInput;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -31,9 +32,6 @@ namespace TGC.Group.Model
         //Loader del framework
         private TgcSceneLoader loader;
 
-        //vector posición de cámara
-        private Vector3 cameraPosition;
-
         //mundo
         private World MyWorld;
 
@@ -65,7 +63,7 @@ namespace TGC.Group.Model
         //Semilla para randoms
         public static int RandomSeed { get; } = 666;
         //Dimensiones de cada cuadrante del mapa
-        public static int MapLength { get; } = 5000;
+        public static int MapLength { get; } = 2000;
 
         private static Vector3 zeroVector = new Vector3(0f, 0f, 0f);
 
@@ -129,7 +127,7 @@ namespace TGC.Group.Model
 
             Message = new TgcText2D();
             Message.changeFont(new Font(FontFamily.GenericMonospace, 20, FontStyle.Bold));
-            Message.Color = Color.Aqua;
+            Message.Color = Color.Beige;
             Message.Align = TgcText2D.TextAlign.RIGHT;
 
         }
@@ -149,8 +147,37 @@ namespace TGC.Group.Model
             MyWorld.update();
             MenuInterface.update();
 
-            //TODO pasar esto a un método
-            if(Input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            //TODO pasar esto a un método --> selección de objetos
+            if(Input.keyPressed(Key.LeftArrow))
+            {
+                Player1.selectPreviousItem();
+            }
+            if (Input.keyPressed(Key.RightArrow))
+            {
+                Player1.selectNextItem();
+            }
+            if (Input.keyPressed(Key.E))
+            {
+                Player1.equipSelectedItem();
+            }
+            if (Input.keyPressed(Key.Q))
+            {
+                Player1.removeInventoryObject(Player1.SelectedItem);
+            }
+            if (Input.keyPressed(Key.Z))
+            {
+                Player1.selectForCombination(Player1.SelectedItem);
+            }
+            if (Input.keyPressed(Key.C))
+            {
+                if (!InventoryObject.combineObjects(Player1, Player1.combinationSelection))
+                {
+                    //falló la combinación
+                }
+            }
+
+            //TODO pasar esto a un método --> testeo de colisiones
+            if (Input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
                 pickingRay.updateRay();
 
@@ -161,50 +188,32 @@ namespace TGC.Group.Model
                     collided = TgcCollisionUtils.intersectRayAABB(pickingRay.Ray, objeto.mesh.BoundingBox, out collisionPoint);
                     if (collided)
                     {
-                        collidedObject = objeto;
-                        if (collidedObject.getHit(1))
+                        Vector3 aux = new Vector3(0f, 0f, 0f);
+                        aux.Add(Camara.Position);
+                        aux.Subtract(objeto.mesh.Position);
+                        if (FastMath.Ceiling(aux.Length()) < 50)
                         {
-                            MyWorld.destroyObject(collidedObject);
-                            List<InventoryObject> drops = collidedObject.getDrops();
-                            foreach (InventoryObject invObject in drops)
-                            {
-                                //agrego los drops al inventario del usuario
-                                if (!Player1.addInventoryObject(invObject))
-                                {
-                                    //no pudo agregar el objeto
-                                    Message.Text = "No hay espacio en el inventario... Objetos descartados";
-                                }
-                            }
-                        }
-                        break;
-                    }    
-                }
-                if(!collided)
-                {
-                    //veo si tocó un árbol
-                    foreach (InteractiveObject tree in MyWorld.Trees)
-                    {
-                        collided = TgcCollisionUtils.intersectRayAABB(pickingRay.Ray, tree.mesh.BoundingBox, out collisionPoint);
-                        if (collided)
-                        {
-                            collidedObject = tree;
-                            if (collidedObject.getHit(1))
+                            collidedObject = objeto;
+                            if (collidedObject.getHit(Player1.getDamage()))
                             {
                                 MyWorld.destroyObject(collidedObject);
                                 List<InventoryObject> drops = collidedObject.getDrops();
-                                foreach(InventoryObject invObject in drops)
+                                foreach (InventoryObject invObject in drops)
                                 {
                                     //agrego los drops al inventario del usuario
-                                    if(!Player1.addInventoryObject(invObject))
+                                    if (!Player1.addInventoryObject(invObject))
                                     {
                                         //no pudo agregar el objeto
-                                        Message.Text = "No hay espacio en el inventario... Objetos descartados";
+                                        Message.Text = "No hay espacio en el inventario...";
                                     }
                                 }
                             }
                             break;
+                        }else
+                        {
+                            collided = false;
                         }
-                    }
+                    }    
                 }
 
                 //si hubo colisión
@@ -251,8 +260,8 @@ namespace TGC.Group.Model
             lightEffect.SetValue("time", time);
 
             //Dibuja un texto por pantalla
-            DrawText.drawText("W, A, S, D ←, →, CLICK", 0, 20, Color.DarkSalmon);
-            DrawText.drawText("Camera: " + Camara.Position.X + "," + Camara.Position.Y + "," + Camara.Position.Z, 0, 40, Color.DarkOrange);
+            if(null != Player1.EquippedObject) DrawText.drawText("Objeto equipado: " + Player1.EquippedObject.Type.ToString(), 0, 20, Color.DarkSalmon);
+            if (null != Player1.SelectedItem) DrawText.drawText("Objeto seleccionado: (" + Player1.SelectedItemIndex + ")" + Player1.SelectedItem.Type.ToString(), 0, 30, Color.DarkSalmon);
 
             Message.render();
             MyWorld.render();
@@ -263,7 +272,7 @@ namespace TGC.Group.Model
                 //un objeto fue objetivo de una acción
                 soundPlayer.playMaterialSound(collidedObject.material);
 
-                if (collidedObject.alive)
+                if (!collidedObject.alive)
                 {
                     //el objeto debe ser eliminado
                     if(collidedObject.objectType == InteractiveObject.ObjectTypes.Tree)
