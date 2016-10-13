@@ -200,7 +200,9 @@ namespace TGC.Group.Model
             teapotMesh.Transform = Matrix.Scaling(teapotMesh.Scale) * Matrix.Translation(teapotMesh.Position);
             teapotMesh.updateBoundingBox();
             Objetos = new List<InteractiveObject>();
-            Objetos.Add(new InteractiveObject("teapot", 2, teapotMesh, InteractiveObject.Materials.Glass, InteractiveObject.ObjectTypes.Misc));
+            InteractiveObject interactiveObject = new InteractiveObject("teapot", 2, teapotMesh, InteractiveObject.Materials.Glass, InteractiveObject.ObjectTypes.Misc);
+            interactiveObject.drops.Add(InventoryObject.ObjectTypes.Potion);
+            Objetos.Add(interactiveObject);
         }
 
         /// <summary>
@@ -258,7 +260,10 @@ namespace TGC.Group.Model
                 instance.Transform = Matrix.Scaling(instance.Scale) * Matrix.Translation(instance.Position);
                 instance.updateBoundingBox();
                 instance.AlphaBlendEnable = true;
-                Trees.Add(new InteractiveObject("Tree", 5, instance, InteractiveObject.Materials.Wood, InteractiveObject.ObjectTypes.Tree));
+                InteractiveObject interactiveObject = new InteractiveObject("Tree", 5, instance, InteractiveObject.Materials.Wood, InteractiveObject.ObjectTypes.Tree);
+                interactiveObject.drops.Add(InventoryObject.ObjectTypes.Wood);
+                interactiveObject.drops.Add(InventoryObject.ObjectTypes.Leaf);
+                Trees.Add(interactiveObject);
             }
         }
 

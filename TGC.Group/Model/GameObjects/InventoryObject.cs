@@ -34,14 +34,17 @@ namespace TGC.Group.Model
         ///     id para control interno
         /// </summary>
         private long Id;
+
         /// <summary>
         ///     nombre visible en inventario
         /// </summary>
         private String Name;
+
         /// <summary>
         ///     tipo del objeto para definir interacciones
         /// </summary>
         public ObjectTypes Type;
+
         /// <summary>
         ///     indica los puntos de daño que puede generar este objeto
         /// </summary>

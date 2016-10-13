@@ -18,30 +18,26 @@ namespace TGC.Group.Model
     class GUI : Renderable
     {
         public static Dictionary<InventoryObject.ObjectTypes, CustomSprite> InventorySprites { get; set; }
-        public enum StatusBarElements { LifePoints, Weather, Hunger, Thirst,
-            Player
-        }
+        public enum StatusBarElements { LifePoints, Weather, Hunger, Thirst, Player }
         private Drawer2D drawer;
-        private List<CustomSprite> menuObjects;
         private Dictionary<StatusBarElements, TgcText2D> statusBarContent;
+        private CustomSprite StatusBar;
+        private Player Player1;
         private D3DDevice Device;
 
         static GUI() {
             InventorySprites = new Dictionary<InventoryObject.ObjectTypes, CustomSprite>();
         }
 
-        public GUI(String mediaDir, D3DDevice device)
+        public GUI(String mediaDir, D3DDevice device, Player player)
         {
-
             Device = device;
+            Player1 = player;
 
             drawer = new Drawer2D();
-            menuObjects = new List<CustomSprite>();
             statusBarContent = new Dictionary<StatusBarElements, TgcText2D>();
 
             //creo sprites para cada tipo de objeto
-
-            int count = 1;
 
             Vector2 scaling = new Vector2(0.35f, 0.35f);
 
@@ -52,27 +48,18 @@ namespace TGC.Group.Model
                 sprite.Bitmap = new CustomBitmap(mediaDir + "2d\\Inventory\\icon-" + type.ToString() + ".png", Device.Device);
                 sprite.Scaling = scaling;
 
-                float height = (sprite.Bitmap.Size.Height * sprite.Scaling.Y);
-                float width = (((sprite.Bitmap.Size.Width * sprite.Scaling.Y)) * count) * 1.1f;
-                sprite.Position = new Vector2(FastMath.Max(0 + width, 0), FastMath.Max(Device.Height - height, 0));
-
                 //agrego objetos a la lista
-                menuObjects.Add(sprite);
-                count++;
+                InventorySprites.Add(type, sprite);
             }
 
             //armo status bar
-            CustomSprite statusBar = null;
-            statusBar = new CustomSprite();
-            statusBar.Bitmap = new CustomBitmap(mediaDir + "2d\\statusBar.png", Device.Device);
-            statusBar.Scaling = scaling; 
+            StatusBar = new CustomSprite();
+            StatusBar.Bitmap = new CustomBitmap(mediaDir + "2d\\statusBar.png", Device.Device);
+            StatusBar.Scaling = scaling; 
 
-            float barHeight = (statusBar.Bitmap.Size.Height * statusBar.Scaling.Y);
-            float barWidth = (statusBar.Bitmap.Size.Width * statusBar.Scaling.Y);
-            statusBar.Position = new Vector2(FastMath.Max(Device.Width - barWidth, 0), FastMath.Max(Device.Height - barHeight, 0));
-
-            //agrego objetos a la lista
-            menuObjects.Add(statusBar);
+            float barHeight = (StatusBar.Bitmap.Size.Height * StatusBar.Scaling.Y);
+            float barWidth = (StatusBar.Bitmap.Size.Width * StatusBar.Scaling.Y);
+            StatusBar.Position = new Vector2(FastMath.Max(Device.Width - barWidth, 0), FastMath.Max(Device.Height - barHeight, 0));
 
             //textos de status
             float textHeight = (createText("ejemplo").Size.Height / (barHeight / 5));
@@ -113,9 +100,9 @@ namespace TGC.Group.Model
 
         public void dispose()
         {
-            foreach (CustomSprite sprite in menuObjects)
+            foreach (KeyValuePair<InventoryObject.ObjectTypes, CustomSprite> element in InventorySprites)
             {
-                sprite.Dispose();
+                element.Value.Dispose();
             }
 
             foreach (KeyValuePair<StatusBarElements, TgcText2D> text in statusBarContent)
@@ -127,23 +114,36 @@ namespace TGC.Group.Model
         public void render()
         {
             drawer.BeginDrawSprite();
+            int count = 1;
+            CustomSprite sprite = null;
 
-            foreach(CustomSprite sprite in menuObjects)
+            //por cada elemento del inventario del usuario dibujo un sprite de ese tipo
+            foreach (InventoryObject element in Player1.Inventory)
             {
+                sprite = InventorySprites[element.Type];
+                float height = (sprite.Bitmap.Size.Height * sprite.Scaling.Y);
+                float width = (((sprite.Bitmap.Size.Width * sprite.Scaling.Y)) * count) * 1.1f;
+                sprite.Position = new Vector2(FastMath.Max(0 + width, 0), FastMath.Max(Device.Height - height, 0));
+
                 drawer.DrawSprite(sprite);
+                count++;
             }
+
+            //dibujo barra de estado
+            drawer.DrawSprite(StatusBar);
 
             drawer.EndDrawSprite();
 
+            //dibujo textos de estado
             foreach(KeyValuePair<StatusBarElements, TgcText2D> text in statusBarContent)
             {
                 text.Value.render();
             }
         }
 
-        public void update(Player player)
+        public void update()
         {
-            updateStatusBarContent(player);
+            updateStatusBarContent(Player1);
         }
 
         /// <summary>
@@ -157,11 +157,6 @@ namespace TGC.Group.Model
             this.statusBarContent[StatusBarElements.Weather].Text = "clima: " + player.Weather;
             this.statusBarContent[StatusBarElements.Hunger].Text = "hambre: " + player.Hunger;
             this.statusBarContent[StatusBarElements.Thirst].Text = "sed: " + player.Thirst;
-        }
-
-        public void update()
-        {
-            throw new NotImplementedException();
         }
     }
 }

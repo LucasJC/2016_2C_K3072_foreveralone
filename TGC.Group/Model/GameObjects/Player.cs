@@ -44,7 +44,7 @@ namespace TGC.Group.Model
         /// <summary>
         ///     tamaño del inventario, indica el máximo
         /// </summary>
-        private int InventorySize = 20;
+        private int InventorySize = 10;
 
         /// <summary>
         ///     indica si el jugador está vivo
@@ -56,6 +56,10 @@ namespace TGC.Group.Model
         /// </summary>
         public InventoryObject EquippedObject;
 
+        public Player()
+        {
+        }
+
         /// <summary>
         ///     Método que retorna true al agregar un objeto al inventario del jugador.
         ///     Si el jugador no tiene espacio disponible en su inventario devuelve false y el objeto no se agrega.
@@ -64,7 +68,7 @@ namespace TGC.Group.Model
         /// <returns></returns>
         public bool addInventoryObject(InventoryObject newObject)
         {
-            if(this.InventorySize < this.Inventory.Count)
+            if(this.Inventory.Count < this.InventorySize)
             {
                 this.Inventory.Add(newObject);
                 return true;

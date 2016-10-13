@@ -21,6 +21,7 @@ namespace TGC.Group.Model
         public bool selected { get; set; }
         public Materials material;
         public ObjectTypes objectType;
+        public List<InventoryObject.ObjectTypes> drops = new List<InventoryObject.ObjectTypes>();
         public bool alive = true;
 
         /// <summary>
@@ -51,6 +52,22 @@ namespace TGC.Group.Model
             {
                 return false;
             }
+        }
+
+        /// <summary>
+        ///     método que genera los objetos de drop para el usuario
+        /// </summary>
+        /// <returns></returns>
+        public List<InventoryObject> getDrops()
+        {
+            List<InventoryObject> result = new List<InventoryObject>();
+
+            foreach(InventoryObject.ObjectTypes type in drops)
+            {
+                result.Add(new InventoryObject(type));
+            }
+
+            return result;
         }
     }
 }

@@ -38,7 +38,7 @@ namespace TGC.Group.Model
         private World MyWorld;
 
         //jugador
-        private Player Player1;
+        public Player Player1;
 
         //reproductor de sonidos
         private SoundPlayer soundPlayer;
@@ -125,7 +125,7 @@ namespace TGC.Group.Model
             soundPlayer = new SoundPlayer(DirectSound, MediaDir);
 
             //gui
-            MenuInterface = new GUI(MediaDir, D3DDevice.Instance);
+            MenuInterface = new GUI(MediaDir, D3DDevice.Instance, Player1);
 
             Message = new TgcText2D();
             Message.changeFont(new Font(FontFamily.GenericMonospace, 20, FontStyle.Bold));
@@ -147,7 +147,7 @@ namespace TGC.Group.Model
             collidedObject = null;
 
             MyWorld.update();
-            MenuInterface.update(Player1);
+            MenuInterface.update();
 
             //TODO pasar esto a un método
             if(Input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
@@ -165,8 +165,17 @@ namespace TGC.Group.Model
                         if (collidedObject.getHit(1))
                         {
                             MyWorld.destroyObject(collidedObject);
+                            List<InventoryObject> drops = collidedObject.getDrops();
+                            foreach (InventoryObject invObject in drops)
+                            {
+                                //agrego los drops al inventario del usuario
+                                if (!Player1.addInventoryObject(invObject))
+                                {
+                                    //no pudo agregar el objeto
+                                    Message.Text = "No hay espacio en el inventario... Objetos descartados";
+                                }
+                            }
                         }
-                        Message.Text = "Objeto: " + collidedObject.name + " (" + collidedObject.lifePoints + ")";
                         break;
                     }    
                 }
@@ -182,8 +191,17 @@ namespace TGC.Group.Model
                             if (collidedObject.getHit(1))
                             {
                                 MyWorld.destroyObject(collidedObject);
+                                List<InventoryObject> drops = collidedObject.getDrops();
+                                foreach(InventoryObject invObject in drops)
+                                {
+                                    //agrego los drops al inventario del usuario
+                                    if(!Player1.addInventoryObject(invObject))
+                                    {
+                                        //no pudo agregar el objeto
+                                        Message.Text = "No hay espacio en el inventario... Objetos descartados";
+                                    }
+                                }
                             }
-                            Message.Text = "Objeto: " + collidedObject.name + " (" + collidedObject.lifePoints + ")";
                             break;
                         }
                     }
