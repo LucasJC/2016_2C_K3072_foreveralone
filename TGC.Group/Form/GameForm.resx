@@ -121,7 +121,7 @@
   <data name="panel3D.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAABkcAAANXCAYAAACPO4haAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAACxAAAAsQAa0jvXUAAAAGYktHRAD/AP8A/6C9p5MAAAAHdElNRQfgCg0FECr1+Ggy
+        YQUAAAAJcEhZcwAACw8AAAsPAZL5A6UAAAAGYktHRAD/AP8A/6C9p5MAAAAHdElNRQfgCg0FECr1+Ggy
         AAAAHWlUWHRDb21tZW50AAAAAABDcmVhdGVkIHdpdGggR0lNUGQuZQcAAP9XSURBVHhe7P2H221XdZ4P
         509JbEwHYTBg44od23QQ1RT3BIyJW2InYBvjjgu4YOO4EZfgxPniHudnm96LqKIIhArqEhLqOpKQIOub
         o835jDHHXGvt8p7znnO2rmtee+/V93qL3jPv/Tz3v/pXh/8Od+BwBw534HAHDnfgcAcOd+BwBw534HAH
@@ -38457,11 +38457,13 @@
 </value>
   </data>
   <data name="textBox1.Text" xml:space="preserve">
-    <value>Constroles:
+    <value>Controles:
 W,A,S,D -&gt; Moverse por el mapa
 Flechas Izq y Der -&gt; Seleccionar objetos
 Q -&gt; Descartar objeto seleccionado
 E -&gt; Equipar objeto seleccionado
+Z -&gt; Seleccionar objeto para combinación
+C -&gt; Combinar objetos
 Click Derecho -&gt; Atacar / Golpear
 Espacio -&gt; Saltar
 Shift Izquierdo -&gt; Correr
