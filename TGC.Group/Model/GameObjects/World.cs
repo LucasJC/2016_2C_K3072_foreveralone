@@ -18,8 +18,10 @@ namespace TGC.Group.Model
     /// <summary>
     ///     Clase que representa al mundo en el juego
     /// </summary>
-    class World : Renderable
+    public class World : Renderable
     {
+        public enum Weather { Hot, Cold, Normal }
+
         private String MediaDir;
         private Microsoft.DirectX.Direct3D.Device Device;
         private TgcSceneLoader Loader;
@@ -218,16 +220,17 @@ namespace TGC.Group.Model
             //skyBox.Color = Color.OrangeRed;
 
             var texturesPath = MediaDir + "Textures\\SkyBox\\";
-
+            String imgNameRoot = "clouds";
+            String imgExtension = "png";
             //Configurar las texturas para cada una de las 6 caras
-            SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "phobos_up.jpg");
-            SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "phobos_dn.jpg");
-            SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "phobos_lf.jpg");
-            SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "phobos_rt.jpg");
+            SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + imgNameRoot + "_up." + imgExtension);
+            SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + imgNameRoot + "_dn." + imgExtension);
+            SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + imgNameRoot + "_lf." + imgExtension);
+            SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + imgNameRoot + "_rt." + imgExtension);
 
             //Hay veces es necesario invertir las texturas Front y Back si se pasa de un sistema RightHanded a uno LeftHanded
-            SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "phobos_bk.jpg");
-            SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "phobos_ft.jpg");
+            SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + imgNameRoot + "_bk." + imgExtension);
+            SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + imgNameRoot + "_ft." + imgExtension);
             SkyBox.SkyEpsilon = 25f;
             //Inicializa todos los valores para crear el SkyBox
             SkyBox.Init();

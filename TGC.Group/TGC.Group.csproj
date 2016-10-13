@@ -86,18 +86,23 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Game.settings</DependentUpon>
     </Compile>
-    <Compile Include="Model\GameModel.cs" />
-    <Compile Include="Model\GameUtils.cs" />
-    <Compile Include="Model\GrillaRegular.cs" />
-    <Compile Include="Model\GrillaRegularNode.cs" />
-    <Compile Include="Model\InteractiveObject.cs" />
-    <Compile Include="Model\InventoryObject.cs" />
-    <Compile Include="Model\ObjectCombination.cs" />
-    <Compile Include="Model\Player.cs" />
+    <Compile Include="Model\2D\Class1.cs" />
+    <Compile Include="Model\2D\CustomBitmap.cs" />
+    <Compile Include="Model\2D\Drawer2D.cs" />
+    <Compile Include="Model\2D\GUISprite.cs" />
+    <Compile Include="Model\GameObjects\GameModel.cs" />
+    <Compile Include="Model\Utils\GameUtils.cs" />
+    <Compile Include="Model\Optimization\GrillaRegular.cs" />
+    <Compile Include="Model\Optimization\GrillaRegularNode.cs" />
+    <Compile Include="Model\2D\GUI.cs" />
+    <Compile Include="Model\GameObjects\InteractiveObject.cs" />
+    <Compile Include="Model\GameObjects\InventoryObject.cs" />
+    <Compile Include="Model\GameObjects\ObjectCombination.cs" />
+    <Compile Include="Model\GameObjects\Player.cs" />
     <Compile Include="Model\Renderable.cs" />
-    <Compile Include="Model\SoundPlayer.cs" />
-    <Compile Include="Model\TgcFpsCamera.cs" />
-    <Compile Include="Model\World.cs" />
+    <Compile Include="Model\Sound\SoundPlayer.cs" />
+    <Compile Include="Model\Camera\TgcFpsCamera.cs" />
+    <Compile Include="Model\GameObjects\World.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form\GameForm.resx">
@@ -167,6 +172,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

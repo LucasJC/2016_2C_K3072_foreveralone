@@ -15,19 +15,42 @@ namespace TGC.Group.Model
         ///     nombre del jugador
         /// </summary>
         public String Name { get; set; } = "Player1";
+
         /// <summary>
         ///     puntos de vida del jugador
         /// </summary>
         public int LifePoints { get; set; } = 100;
+
+        /// <summary>
+        ///     clima actual
+        /// </summary>
+        public World.Weather Weather { get; set; } = World.Weather.Normal;
+
+        /// <summary>
+        ///     sed del jugador
+        /// </summary>
+        public int Thirst { get; set; } = 100;
+
+        /// <summary>
+        ///     hambre del jugador
+        /// </summary>
+        public int Hunger { get; set; } = 100;
+
+        /// <summary>
+        ///     elementos del inventario
+        /// </summary>
         public List<InventoryObject> Inventory { get; set; } = new List<InventoryObject>();
+
         /// <summary>
         ///     tamaño del inventario, indica el máximo
         /// </summary>
         private int InventorySize = 20;
+
         /// <summary>
         ///     indica si el jugador está vivo
         /// </summary>
         public bool Alive { get; set; } = true;
+
         /// <summary>
         ///     objeto actualmente equipado, define los puntos de daño que realiza el usuario
         /// </summary>

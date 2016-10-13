@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using TGC.Group.Model._2D;
 
 namespace TGC.Group.Model
 {

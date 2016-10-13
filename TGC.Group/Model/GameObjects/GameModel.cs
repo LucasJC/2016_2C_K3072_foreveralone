@@ -8,6 +8,7 @@ using TGC.Core.Direct3D;
 using TGC.Core.Example;
 using TGC.Core.Geometry;
 using TGC.Core.Input;
+using TGC.Core.Particle;
 using TGC.Core.SceneLoader;
 using TGC.Core.Shaders;
 using TGC.Core.Terrain;
@@ -19,10 +20,7 @@ using TGC.Examples.Camara;
 namespace TGC.Group.Model
 {
     /// <summary>
-    ///     Ejemplo para implementar el TP.
-    ///     Inicialmente puede ser renombrado o copiado para hacer más ejemplos chicos, en el caso de copiar para que se
-    ///     ejecute el nuevo ejemplo deben cambiar el modelo que instancia GameForm <see cref="Form.GameForm.InitGraphics()" />
-    ///     line 97.
+    ///     Modelo Principal del Juego
     /// </summary>
     public class GameModel : TgcExample
     {
@@ -39,11 +37,23 @@ namespace TGC.Group.Model
         //mundo
         private World MyWorld;
 
+        //jugador
+        private Player Player1;
+
         //reproductor de sonidos
         private SoundPlayer soundPlayer;
 
+        //gui
+        private GUI MenuInterface;
+
         //shaders
         private Microsoft.DirectX.Direct3D.Effect lightEffect;
+
+        //emisor de partículas
+        private ParticleEmitter emitter;
+        private float emissionTime = 1f;
+        private float emittedTime = 0f;
+        private bool emit = false;
 
         //para colisiones
         private TgcPickingRay pickingRay;
@@ -56,6 +66,8 @@ namespace TGC.Group.Model
         public static int RandomSeed { get; } = 666;
         //Dimensiones de cada cuadrante del mapa
         public static int MapLength { get; } = 5000;
+
+        private static Vector3 zeroVector = new Vector3(0f, 0f, 0f);
 
         /// <summary>
         ///     Constructor del juego.
@@ -91,6 +103,19 @@ namespace TGC.Group.Model
             //genero el mundo
             MyWorld = new World(MediaDir, d3dDevice, loader, Camara, Frustum, MapLength, true);
 
+            //creo usuario
+            Player1 = new Player();
+
+            //emisor de partículas
+            emitter = new ParticleEmitter(MediaDir + "Textures\\smokeParticle.png", 10);
+            emitter.Position = new Vector3(0, 0, 0);
+            emitter.MinSizeParticle = 2f;
+            emitter.MaxSizeParticle = 5f;
+            emitter.ParticleTimeToLive = 1f;
+            emitter.CreationFrecuency = 1f;
+            emitter.Dispersion = 25;
+            emitter.Speed = new Vector3(5f, 5f, 5f);
+
             //MyWorld.lightEffect = lightEffect;
             //MyWorld.updateEffects();
 
@@ -98,6 +123,9 @@ namespace TGC.Group.Model
             pickingRay = new TgcPickingRay(Input);
             //sonidos
             soundPlayer = new SoundPlayer(DirectSound, MediaDir);
+
+            //gui
+            MenuInterface = new GUI(MediaDir, D3DDevice.Instance);
 
             Message = new TgcText2D();
             Message.changeFont(new Font(FontFamily.GenericMonospace, 20, FontStyle.Bold));
@@ -119,6 +147,7 @@ namespace TGC.Group.Model
             collidedObject = null;
 
             MyWorld.update();
+            MenuInterface.update(Player1);
 
             //TODO pasar esto a un método
             if(Input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
@@ -160,8 +189,29 @@ namespace TGC.Group.Model
                     }
                 }
 
+                //si hubo colisión
+                if(collided)
+                {
+                    //a darle átomos
+                    emit = true;
+                    emittedTime = 0;
+                    emitter.Position = collidedObject.mesh.Position;
+                }
             }
 
+            //controlo tiempos de emisión de partículas
+            if (emit)
+            {
+                if (emittedTime <= emissionTime)
+                {
+                    emittedTime += ElapsedTime;
+                }
+                else
+                {
+                    emit = false;
+                    emitter.Position = zeroVector;
+                }
+            }
         }
 
         /// <summary>
@@ -173,6 +223,9 @@ namespace TGC.Group.Model
         {
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
+            //habilito efecto de partículas
+            D3DDevice.Instance.ParticlesEnabled = true;
+            D3DDevice.Instance.EnableParticles();
 
             time += ElapsedTime;
 
@@ -185,11 +238,13 @@ namespace TGC.Group.Model
 
             Message.render();
             MyWorld.render();
-            
+            MenuInterface.render();
+
             if(null != collidedObject)
             {
                 //un objeto fue objetivo de una acción
                 soundPlayer.playMaterialSound(collidedObject.material);
+
                 if (collidedObject.alive)
                 {
                     //el objeto debe ser eliminado
@@ -199,6 +254,13 @@ namespace TGC.Group.Model
                     }
                 }
             }
+
+            //veo si emitir partículas
+            if (emit)
+            {
+                emitter.render(emittedTime);
+            }
+
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
         }
@@ -211,6 +273,8 @@ namespace TGC.Group.Model
         public override void Dispose()
         {
             MyWorld.dispose();
+            emitter.dispose();
+            MenuInterface.dispose();
         }
     }
 }
