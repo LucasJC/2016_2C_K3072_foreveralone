@@ -43,7 +43,7 @@ namespace TGC.Group.Model
         private GrillaRegular OptimizationGrid = new GrillaRegular();
         //effects
         public Effect lightEffect { get; set; } = null;
-        
+
         /// <summary>
         /// 
         ///     Constructor principal del Mundo
@@ -87,7 +87,7 @@ namespace TGC.Group.Model
             if (MoveSkyBoxWithCamera)
             {
                 SkyBox.Center = Camera.Position;
-            }
+            } 
         }
 
         /// <summary>

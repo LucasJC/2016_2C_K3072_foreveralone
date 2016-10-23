@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TGC.Core.Direct3D;
+using TGC.Core.Input;
 using TGC.Core.Text;
 using TGC.Core.Utils;
 using TGC.Examples.Engine2D.Spaceship.Core;
@@ -18,7 +19,10 @@ namespace TGC.Group.Model
     class GUI : Renderable
     {
         public static Dictionary<InventoryObject.ObjectTypes, CustomSprite> InventorySprites { get; set; }
+        public Dictionary<Vector2, InventoryObject> CurrentInventoryPositions {get;set;}
         public enum StatusBarElements { LifePoints, Weather, Hunger, Thirst, Player }
+        private int usedSpace;
+        private TgcText2D dayTime;
         private Drawer2D drawer;
         private Dictionary<StatusBarElements, TgcText2D> statusBarContent;
         private CustomSprite StatusBar;
@@ -26,17 +30,22 @@ namespace TGC.Group.Model
         private CustomSprite itemCombinationSprite;
         private CustomSprite itemEquippedSprite;
         private Player Player1;
+        private GameModel gameModelInstance;
         private D3DDevice Device;
+
+        public static int DefaultFontSize { get; set; } = 12;
+
 
         static GUI() {
             InventorySprites = new Dictionary<InventoryObject.ObjectTypes, CustomSprite>();
         }
 
-        public GUI(String mediaDir, D3DDevice device, Player player)
+        public GUI(String mediaDir, D3DDevice device, Player player, GameModel gameModel)
         {
             Device = device;
             Player1 = player;
-
+            gameModelInstance = gameModel;
+            
             drawer = new Drawer2D();
             statusBarContent = new Dictionary<StatusBarElements, TgcText2D>();
 
@@ -80,40 +89,19 @@ namespace TGC.Group.Model
             StatusBar.Position = new Vector2(FastMath.Max(Device.Width - barWidth, 0), FastMath.Max(Device.Height - barHeight, 0));
 
             //textos de status
-            float textHeight = (createText("ejemplo").Size.Height / (barHeight / 5));
+            float textHeight = (GameUtils.createText("ejemplo").Size.Height / (barHeight / 5));
             float textWidth = (Device.Width - (barWidth * 0.9f)) ;
-            statusBarContent.Add(StatusBarElements.Player, createText("jugador: ", textWidth, Device.Height - (textHeight * 5) - barHeight * 0.1f));
-            statusBarContent.Add(StatusBarElements.LifePoints, createText("vida: ", textWidth, Device.Height - (textHeight * 4) - barHeight * 0.1f));
-            statusBarContent.Add(StatusBarElements.Weather, createText("clima: ", textWidth, Device.Height - (textHeight * 3) - barHeight * 0.1f));
-            statusBarContent.Add(StatusBarElements.Hunger, createText("hambre: ", textWidth, Device.Height - (textHeight * 2) - barHeight * 0.1f));
-            statusBarContent.Add(StatusBarElements.Thirst, createText("sed: ", textWidth, Device.Height - (textHeight * 1) - barHeight * 0.1f));
-        }
+            statusBarContent.Add(StatusBarElements.Player, GameUtils.createText("jugador: ", textWidth, Device.Height - (textHeight * 5) - barHeight * 0.1f));
+            statusBarContent.Add(StatusBarElements.LifePoints, GameUtils.createText("vida: ", textWidth, Device.Height - (textHeight * 4) - barHeight * 0.1f));
+            statusBarContent.Add(StatusBarElements.Weather, GameUtils.createText("clima: ", textWidth, Device.Height - (textHeight * 3) - barHeight * 0.1f));
+            statusBarContent.Add(StatusBarElements.Hunger, GameUtils.createText("hambre: ", textWidth, Device.Height - (textHeight * 2) - barHeight * 0.1f));
+            statusBarContent.Add(StatusBarElements.Thirst, GameUtils.createText("sed: ", textWidth, Device.Height - (textHeight * 1) - barHeight * 0.1f));
 
-        /// <summary>
-        ///     crea un texto con el valor indicado y la configuración por defecto
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        private TgcText2D createText(String value)
-        {
-            TgcText2D text = new TgcText2D();
-            text.changeFont(new Font(FontFamily.GenericMonospace, 12, FontStyle.Regular));
-            text.Color = Color.DarkGray;
-            text.Align = TgcText2D.TextAlign.LEFT;
-            text.Text = value;
-            return text;
-        }
+            //contabilizo texto fps
+            usedSpace += (int) (DefaultFontSize * 1.1f);
+            dayTime = GameUtils.createText("", 0, usedSpace);
+            usedSpace += (int)(DefaultFontSize * 1.1f);
 
-        /// <summary>
-        ///     crea un texto con el valor indicado, la configuración por defecto  y la posición indicada
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        private TgcText2D createText(String value, float x, float y)
-        {
-            TgcText2D text = createText(value);
-            text.Position = new Point((int)x, (int)y);
-            return text;
         }
 
         public void dispose()
@@ -131,6 +119,9 @@ namespace TGC.Group.Model
 
         public void render()
         {
+            //muestro fecha
+            dayTime.render();
+
             drawer.BeginDrawSprite();
             int count = 1;
             CustomSprite sprite = null;
@@ -144,7 +135,6 @@ namespace TGC.Group.Model
                 float height = (sprite.Bitmap.Size.Height * sprite.Scaling.Y);
                 float width = (((sprite.Bitmap.Size.Width * sprite.Scaling.Y)) * count) * 1.1f;
                 sprite.Position = new Vector2(FastMath.Max(0 + width, 0), FastMath.Max(Device.Height - height, 0));
-
                 drawer.DrawSprite(sprite);
 
                 if(element.Value.InventoryIndex == Player1.SelectedItemIndex)
@@ -182,6 +172,7 @@ namespace TGC.Group.Model
         public void update()
         {
             updateStatusBarContent(Player1);
+            dayTime.Text = "day: " + gameModelInstance.Day + ", time: " + gameModelInstance.Hour + ":" + ((gameModelInstance.Minute.ToString().Length == 1) ? "0" : "") + gameModelInstance.Minute + ":" + ((gameModelInstance.Seconds.ToString().Length == 1) ? "0" : "") + gameModelInstance.Seconds + "(" + gameModelInstance.Cycle + ")";
         }
 
         /// <summary>

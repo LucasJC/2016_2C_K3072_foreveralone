@@ -27,6 +27,17 @@ namespace TGC.Group.Model
     {
         //tiempo
         private float time = 0;
+
+        public enum DayCycle {DAY, NIGHT};
+
+        //hora del día para controlar ciclos de día y noche
+        public int Day { get; set; }
+        public int Hour { get; set; }
+        public int Minute { get; set; }
+        public int Seconds { get; set; }
+        public DayCycle Cycle { get; set; }
+        private float secondsAuxCounter;
+
         //Directx device
         Microsoft.DirectX.Direct3D.Device d3dDevice;
         //Loader del framework
@@ -58,8 +69,11 @@ namespace TGC.Group.Model
         private bool collided = false;
         private Vector3 collisionPoint;
         private InteractiveObject collidedObject = null;
-        private TgcText2D Message;
-        
+
+        //mensajes
+        private TgcText2D StatusText;
+        private TgcText2D DamageText;
+
         //Semilla para randoms
         public static int RandomSeed { get; } = 666;
         //Dimensiones de cada cuadrante del mapa
@@ -123,12 +137,15 @@ namespace TGC.Group.Model
             soundPlayer = new SoundPlayer(DirectSound, MediaDir);
 
             //gui
-            MenuInterface = new GUI(MediaDir, D3DDevice.Instance, Player1);
+            MenuInterface = new GUI(MediaDir, D3DDevice.Instance, Player1, this);
 
-            Message = new TgcText2D();
-            Message.changeFont(new Font(FontFamily.GenericMonospace, 20, FontStyle.Bold));
-            Message.Color = Color.Beige;
-            Message.Align = TgcText2D.TextAlign.RIGHT;
+            StatusText = GameUtils.createText("", 0, 0, 20, true);
+            StatusText.Color = Color.Beige;
+            StatusText.Align = TgcText2D.TextAlign.RIGHT;
+
+            DamageText = GameUtils.createText("", 0, (D3DDevice.Instance.Height * 0.85f), 25, true);
+            DamageText.Color = Color.MediumVioletRed;
+            DamageText.Align = TgcText2D.TextAlign.CENTER;
 
         }
 
@@ -140,6 +157,12 @@ namespace TGC.Group.Model
         public override void Update()
         {
             PreUpdate();
+
+            //controlo tiempo
+            time += ElapsedTime;
+
+            updateDayTime(ElapsedTime);
+
             //reinicio estado de colisiones
             collided = false;
             collidedObject = null;
@@ -196,6 +219,7 @@ namespace TGC.Group.Model
                             collidedObject = objeto;
                             if (collidedObject.getHit(Player1.getDamage()))
                             {
+                                DamageText.Text = Player1.getDamage().ToString() + " DMG";
                                 MyWorld.destroyObject(collidedObject);
                                 List<InventoryObject> drops = collidedObject.getDrops();
                                 foreach (InventoryObject invObject in drops)
@@ -204,7 +228,7 @@ namespace TGC.Group.Model
                                     if (!Player1.addInventoryObject(invObject))
                                     {
                                         //no pudo agregar el objeto
-                                        Message.Text = "No hay espacio en el inventario...";
+                                        StatusText.Text = "No hay espacio en el inventario...";
                                     }
                                 }
                             }
@@ -242,6 +266,47 @@ namespace TGC.Group.Model
         }
 
         /// <summary>
+        ///     actualiza la fecha actual
+        /// </summary>
+        /// <param name="elapsedTime"></param>
+        private void updateDayTime(float elapsedTime)
+        {
+            secondsAuxCounter += (elapsedTime) * 1000;
+
+            Seconds += (int)secondsAuxCounter;
+            secondsAuxCounter = 0;
+
+            if (Seconds >= 60)
+            {
+                Seconds = 0;
+
+                Minute++;
+
+                if (Minute >= 60)
+                {
+                    Minute = 0;
+
+                    Hour++;
+
+                    if (Hour == 24)
+                    {
+                        Hour = 0;
+                        Day++;
+                    }
+
+                    if(Hour >= 19)
+                    {
+                        Cycle = GameModel.DayCycle.NIGHT;
+                    }else
+                    {
+                       Cycle = GameModel.DayCycle.DAY;
+                    }
+                }
+            }
+            
+        }
+
+        /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
         ///     Escribir aquí todo el código referido al renderizado.
         ///     Borrar todo lo que no haga falta.
@@ -254,8 +319,6 @@ namespace TGC.Group.Model
             D3DDevice.Instance.ParticlesEnabled = true;
             D3DDevice.Instance.EnableParticles();
 
-            time += ElapsedTime;
-
             //Variables para el shader
             lightEffect.SetValue("time", time);
 
@@ -263,10 +326,11 @@ namespace TGC.Group.Model
             if(null != Player1.EquippedObject) DrawText.drawText("Objeto equipado: " + Player1.EquippedObject.Type.ToString(), 0, 20, Color.DarkSalmon);
             if (null != Player1.SelectedItem) DrawText.drawText("Objeto seleccionado: (" + Player1.SelectedItemIndex + ")" + Player1.SelectedItem.Type.ToString(), 0, 30, Color.DarkSalmon);
 
-            Message.render();
+            StatusText.render();
+            DamageText.render();
             MyWorld.render();
             MenuInterface.render();
-
+   
             if(null != collidedObject)
             {
                 //un objeto fue objetivo de una acción
