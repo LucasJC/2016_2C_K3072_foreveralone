@@ -93,6 +93,9 @@
     <Compile Include="Model\2D\Drawer2D.cs" />
     <Compile Include="Model\2D\GUISprite.cs" />
     <Compile Include="Model\GameObjects\GameModel.cs" />
+    <Compile Include="Model\Optimization\Octree.cs" />
+    <Compile Include="Model\Optimization\OctreeBuilder.cs" />
+    <Compile Include="Model\Optimization\OctreeNode.cs" />
     <Compile Include="Model\Utils\GameUtils.cs" />
     <Compile Include="Model\Optimization\GrillaRegular.cs" />
     <Compile Include="Model\Optimization\GrillaRegularNode.cs" />

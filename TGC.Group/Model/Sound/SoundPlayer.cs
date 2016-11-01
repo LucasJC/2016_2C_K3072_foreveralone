@@ -15,7 +15,7 @@ namespace TGC.Group.Model
     {
         //TODO mover a donde corresponda
         public enum EnvironmentConditions { Rain, Wind};
-        public enum Actions { TreeFall, Drink}
+        public enum Actions { TreeFall, Drink, OpenChest, Success, Menu_Wrong, Menu_Next, Menu_Select }
 
         private Dictionary<InteractiveObject.Materials, TgcStaticSound> MaterialSounds;
         private Dictionary<EnvironmentConditions, TgcStaticSound> EnvironmentSounds;
@@ -45,23 +45,42 @@ namespace TGC.Group.Model
             woodSound.loadSound(SoundsPath + "Materials\\wood.wav", directSound.DsDevice);
             TgcStaticSound noneSound = new TgcStaticSound();
             noneSound.loadSound(SoundsPath + "Materials\\default.wav", directSound.DsDevice);
- 
+            TgcStaticSound rockSound = new TgcStaticSound();
+            rockSound.loadSound(SoundsPath + "Materials\\rock.wav", directSound.DsDevice);
+
             MaterialSounds = new Dictionary<InteractiveObject.Materials, TgcStaticSound>();
             MaterialSounds.Add(InteractiveObject.Materials.Wood, woodSound);
             MaterialSounds.Add(InteractiveObject.Materials.Glass, glassSound);
             MaterialSounds.Add(InteractiveObject.Materials.Metal, metalSound);
             MaterialSounds.Add(InteractiveObject.Materials.Plant, noneSound);
             MaterialSounds.Add(InteractiveObject.Materials.None, noneSound);
+            MaterialSounds.Add(InteractiveObject.Materials.Rock, rockSound);
 
             //acciones
             TgcStaticSound drinkSound = new TgcStaticSound();
             drinkSound.loadSound(SoundsPath + "Actions\\drink.wav", directSound.DsDevice);
             TgcStaticSound treeFallSound = new TgcStaticSound();
             treeFallSound.loadSound(SoundsPath + "Actions\\tree_fall.wav", directSound.DsDevice);
+            TgcStaticSound chestOpenSound = new TgcStaticSound();
+            chestOpenSound.loadSound(SoundsPath + "Actions\\chest_open.wav", directSound.DsDevice);
+            TgcStaticSound successSound = new TgcStaticSound();
+            successSound.loadSound(SoundsPath + "Actions\\success.wav", directSound.DsDevice);
+            //menu
+            TgcStaticSound menuWrongSound = new TgcStaticSound();
+            menuWrongSound.loadSound(SoundsPath + "Actions\\menu_wrong.wav", directSound.DsDevice);
+            TgcStaticSound menuNextSound = new TgcStaticSound();
+            menuNextSound.loadSound(SoundsPath + "Actions\\menu_next.wav", directSound.DsDevice);
+            TgcStaticSound menuSelectSound = new TgcStaticSound();
+            menuSelectSound.loadSound(SoundsPath + "Actions\\menu_select.wav", directSound.DsDevice);
 
             ActionSounds = new Dictionary<Actions, TgcStaticSound>();
             ActionSounds.Add(Actions.Drink, drinkSound);
             ActionSounds.Add(Actions.TreeFall, treeFallSound);
+            ActionSounds.Add(Actions.OpenChest, chestOpenSound);
+            ActionSounds.Add(Actions.Success, successSound);
+            ActionSounds.Add(Actions.Menu_Wrong, menuWrongSound);
+            ActionSounds.Add(Actions.Menu_Next, menuNextSound);
+            ActionSounds.Add(Actions.Menu_Select, menuSelectSound);
 
             //environment
             TgcStaticSound rainSound = new TgcStaticSound();

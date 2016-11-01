@@ -108,37 +108,42 @@ namespace TGC.Group.Model
         /// </summary>
         /// <param name="objectToRemove"></param>
         public void removeInventoryObject(InventoryObject objectToRemove) {
-            this.Inventory.Remove(objectToRemove.InventoryIndex);
-            if (EquippedObject == objectToRemove)
-            {
-                EquippedObject = null;
-            }
-            if (SelectedItem == objectToRemove)
-            {
-                SelectedItem = null;
 
-                if (Inventory.Count == 1)
+            if(null != objectToRemove)
+            {
+                this.Inventory.Remove(objectToRemove.InventoryIndex);
+                if (EquippedObject == objectToRemove)
                 {
-                    SelectedItem = Inventory.First().Value;
-                    SelectedItemIndex = SelectedItem.InventoryIndex;
-                } else
+                    EquippedObject = null;
+                }
+                if (SelectedItem == objectToRemove)
                 {
-                    selectNextItem();
-                    if (null == SelectedItem)
+                    SelectedItem = null;
+
+                    if (Inventory.Count == 1)
                     {
-                        selectPreviousItem();
+                        SelectedItem = Inventory.First().Value;
+                        SelectedItemIndex = SelectedItem.InventoryIndex;
+                    }
+                    else
+                    {
+                        selectNextItem();
+                        if (null == SelectedItem)
+                        {
+                            selectPreviousItem();
+                        }
                     }
                 }
-            }
-            if(combinationSelection.Contains(objectToRemove))
-            {
-                combinationSelection.Remove(objectToRemove);
-            }
+                if (combinationSelection.Contains(objectToRemove))
+                {
+                    combinationSelection.Remove(objectToRemove);
+                }
 
-            //si no tengo más items, reinicio el contador de objetos
-            if (0 == Inventory.Count)
-            {
-                inventoryIndexCounter = 0;
+                //si no tengo más items, reinicio el contador de objetos
+                if (0 == Inventory.Count)
+                {
+                    inventoryIndexCounter = 0;
+                }
             }
         }
 

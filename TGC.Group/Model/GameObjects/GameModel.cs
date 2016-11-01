@@ -174,14 +174,17 @@ namespace TGC.Group.Model
             if(Input.keyPressed(Key.LeftArrow))
             {
                 Player1.selectPreviousItem();
+                soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Next);
             }
             if (Input.keyPressed(Key.RightArrow))
             {
                 Player1.selectNextItem();
+                soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Next);
             }
             if (Input.keyPressed(Key.E))
             {
                 Player1.equipSelectedItem();
+                soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Select);
             }
             if (Input.keyPressed(Key.Q))
             {
@@ -190,12 +193,18 @@ namespace TGC.Group.Model
             if (Input.keyPressed(Key.Z))
             {
                 Player1.selectForCombination(Player1.SelectedItem);
+                soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Select);
             }
             if (Input.keyPressed(Key.C))
             {
                 if (!InventoryObject.combineObjects(Player1, Player1.combinationSelection))
                 {
                     //falló la combinación
+                    soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Wrong);
+                }else
+                {
+                    //comb ok
+                    soundPlayer.playActionSound(SoundPlayer.Actions.Success);
                 }
             }
 
@@ -203,10 +212,30 @@ namespace TGC.Group.Model
             if (Input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
                 pickingRay.updateRay();
+                testPicking();
+            }
 
-                //de todos mis objetos veo si colisiona
-                //TODO acá debería traer los que están cercanos al usuario - Por ahora pruebo todos
-                foreach(InteractiveObject objeto in MyWorld.Objetos)
+            //controlo tiempos de emisión de partículas
+            if (emit)
+            {
+                if (emittedTime <= emissionTime)
+                {
+                    emittedTime += ElapsedTime;
+                }
+                else
+                {
+                    emit = false;
+                    emitter.Position = zeroVector;
+                }
+            }
+        }
+
+        private void testPicking()
+        {
+            //de los objetos visibles, testeo colisiones con el picking ray
+            foreach (InteractiveObject objeto in MyWorld.Objetos)
+            {
+                if(objeto.mesh.Enabled)
                 {
                     collided = TgcCollisionUtils.intersectRayAABB(pickingRay.Ray, objeto.mesh.BoundingBox, out collisionPoint);
                     if (collided)
@@ -233,35 +262,22 @@ namespace TGC.Group.Model
                                 }
                             }
                             break;
-                        }else
+                        }
+                        else
                         {
                             collided = false;
                         }
-                    }    
-                }
-
-                //si hubo colisión
-                if(collided)
-                {
-                    //a darle átomos
-                    emit = true;
-                    emittedTime = 0;
-                    emitter.Position = collidedObject.mesh.Position;
+                    }
                 }
             }
 
-            //controlo tiempos de emisión de partículas
-            if (emit)
+            //si hubo colisión
+            if (collided)
             {
-                if (emittedTime <= emissionTime)
-                {
-                    emittedTime += ElapsedTime;
-                }
-                else
-                {
-                    emit = false;
-                    emitter.Position = zeroVector;
-                }
+                //a darle átomos
+                emit = true;
+                emittedTime = 0;
+                emitter.Position = collidedObject.mesh.Position;
             }
         }
 

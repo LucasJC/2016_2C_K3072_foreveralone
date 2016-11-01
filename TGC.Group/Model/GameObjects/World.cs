@@ -12,6 +12,7 @@ using TGC.Core.SceneLoader;
 using TGC.Core.Terrain;
 using TGC.Core.Textures;
 using TGC.Examples.Optimization.GrillaRegular;
+using TGC.Group.Model.Optimization;
 
 namespace TGC.Group.Model
 {
@@ -38,9 +39,8 @@ namespace TGC.Group.Model
         public bool MoveSkyBoxWithCamera { get; set; }
         //longitud de cada lado del mapa
         public int MapLength { get; set; }
-        //activar optimizaciones
-        private bool Optimizations = false;
-        private GrillaRegular OptimizationGrid = new GrillaRegular();
+        //octree para optimizaciones
+        private Octree octree = new Octree();
         //effects
         public Effect lightEffect { get; set; } = null;
 
@@ -61,19 +61,15 @@ namespace TGC.Group.Model
             Camera = camera;
             CameraFrustum = frustum;
             MapLength = mapLength;
-            Optimizations = optimizations;
 
             CreateMap();
             CreateSkyBox();
 
-            if(Optimizations)
-            {
-                TgcBox box = new TgcBox();
-                box.Size = new Vector3(Floor.Size.X, 100, Floor.Size.Z);
+            TgcBox box = new TgcBox();
+            box.Size = new Vector3(Floor.Size.X, 100, Floor.Size.Z);
 
-                OptimizationGrid.create(Objetos, box.BoundingBox);
-                OptimizationGrid.createDebugMeshes();
-            }
+            octree.create(Objetos, box.BoundingBox);
+            octree.createDebugOctreeMeshes();
 
         }
 
@@ -87,7 +83,8 @@ namespace TGC.Group.Model
             if (MoveSkyBoxWithCamera)
             {
                 SkyBox.Center = Camera.Position;
-            } 
+            }
+            octree.update(CameraFrustum);
         }
 
         /// <summary>
@@ -97,18 +94,7 @@ namespace TGC.Group.Model
         {
             SkyBox.render();
             Floor.render();
-
-            if(Optimizations)
-            {
-                OptimizationGrid.render(CameraFrustum, false);
-            }
-            else
-            {
-                foreach (InteractiveObject objeto in Objetos)
-                {
-                    objeto.mesh.render();
-                }
-            }
+            octree.render(CameraFrustum, false);
         }
 
         /// <summary>
