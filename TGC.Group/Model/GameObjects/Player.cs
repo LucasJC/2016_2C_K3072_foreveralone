@@ -73,6 +73,11 @@ namespace TGC.Group.Model
         /// </summary>
         public InventoryObject EquippedObject;
 
+        /// <summary>
+        ///     indica si el usuario se está moviendo
+        /// </summary>
+        public bool Moving { set; get; }
+
         public Player()
         {
         }

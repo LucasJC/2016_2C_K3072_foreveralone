@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using Microsoft.DirectX;
 using Microsoft.DirectX.DirectInput;
@@ -6,6 +7,7 @@ using TGC.Core.Camara;
 using TGC.Core.Direct3D;
 using TGC.Core.Input;
 using TGC.Core.Utils;
+using TGC.Group.Model;
 
 namespace TGC.Examples.Camara
 {
@@ -16,13 +18,13 @@ namespace TGC.Examples.Camara
     /// </summary>
     public class TgcFpsCamera : TgcCamera
     {
-        //TODO por ahora clavo esto en 10 para evitar volar...
-        //TODO agregar efecto tipo gravedad
         public float FixedHeight = 15;
         public float MapXLimit = 0;
         public float MapXNegLimit = 0;
         public float MapZLimit = 0;
         public float MapZNegLimit = 0;
+
+        public Vector3 PreviousPosition { get; set; } = Vector3.Empty;
 
         private readonly Point mouseCenter; //Centro de mause 2D para ocultarlo.
 
@@ -42,6 +44,8 @@ namespace TGC.Examples.Camara
         private bool Jumping = false;
         private bool Falling = false;
         private float JumpingTime = 0f;
+
+        private Player player1;
 
         public TgcFpsCamera(TgcD3dInput input)
         {
@@ -63,8 +67,9 @@ namespace TGC.Examples.Camara
             Gravity = 0.025f;
         }
 
-        public TgcFpsCamera(TgcD3dInput input, float mapXLimit, float mapXNegLimit, float mapZLimit, float mapZNegLimit) : this(input)
+        public TgcFpsCamera(Player player1, TgcD3dInput input, float mapXLimit, float mapXNegLimit, float mapZLimit, float mapZNegLimit) : this(input)
         {
+            this.player1 = player1;
             this.MapXLimit = mapXLimit;
             this.MapXNegLimit = mapXNegLimit;
             this.MapZLimit = mapZLimit;
@@ -130,6 +135,10 @@ namespace TGC.Examples.Camara
 
         public override void UpdateCamera(float elapsedTime)
         {
+
+            //guardo pos anterior
+            this.PreviousPosition = this.Position;
+
             var JumpTime = 3;
             var moveVector = new Vector3(0, 0, 0);
 
@@ -141,28 +150,34 @@ namespace TGC.Examples.Camara
                 this.MovementSpeed = WalkingSpeed;
             }
 
+            player1.Moving = false;
+
             //Forward
             if (Input.keyDown(Key.W))
             {
                 moveVector += new Vector3(0, 0, -1) * MovementSpeed;
+                player1.Moving = true;
             }
 
             //Backward
             if (Input.keyDown(Key.S))
             {
                 moveVector += new Vector3(0, 0, 1) * MovementSpeed;
+                player1.Moving = true;
             }
 
             //Strafe right
             if (Input.keyDown(Key.D))
             {
                 moveVector += new Vector3(-1, 0, 0) * MovementSpeed;
+                player1.Moving = true;
             }
 
             //Strafe left
             if (Input.keyDown(Key.A))
             {
                 moveVector += new Vector3(1, 0, 0) * MovementSpeed;
+                player1.Moving = true;
             }
 
             //Jump
@@ -224,6 +239,26 @@ namespace TGC.Examples.Camara
             if (MapXNegLimit != 0 && positionEye.X <= MapXNegLimit * .97f) positionEye.X = MapXNegLimit * .97f;
             if (MapZLimit != 0 && positionEye.Z >= MapZLimit * .97f) positionEye.Z = MapZLimit * .97f;
             if (MapZNegLimit != 0 && positionEye.Z <= MapZNegLimit * .97f) positionEye.Z = MapZNegLimit * .97f;
+
+            //Calculamos el target de la camara, segun su direccion inicial y las rotaciones en screen space x,y.
+            var cameraRotatedTarget = Vector3.TransformNormal(directionView, cameraRotation);
+            var cameraFinalTarget = positionEye + cameraRotatedTarget;
+
+            var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
+            var cameraRotatedUpVector = Vector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
+
+            base.SetCamera(positionEye, cameraFinalTarget, cameraRotatedUpVector);
+        }
+
+        /// <summary>
+        ///     método que actualiza la cámara con una posición pasada por parámetro
+        /// </summary>
+        /// <param name="newPosition"></param>
+        public void updatePosition(Vector3 newPosition)
+        {
+            //Calculamos la nueva posicion del ojo segun la rotacion actual de la camara.
+            var cameraRotatedPositionEye = Vector3.TransformNormal(newPosition, cameraRotation);
+            positionEye += cameraRotatedPositionEye;
 
             //Calculamos el target de la camara, segun su direccion inicial y las rotaciones en screen space x,y.
             var cameraRotatedTarget = Vector3.TransformNormal(directionView, cameraRotation);

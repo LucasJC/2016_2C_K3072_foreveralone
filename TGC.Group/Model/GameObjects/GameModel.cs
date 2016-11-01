@@ -47,7 +47,10 @@ namespace TGC.Group.Model
         private World MyWorld;
 
         //jugador
-        public Player Player1;
+        public Player Player1 { get; set; }
+
+        //cámara
+        public TgcFpsCamera MyCamera;
 
         //reproductor de sonidos
         private SoundPlayer soundPlayer;
@@ -108,15 +111,18 @@ namespace TGC.Group.Model
 
             //Instancio el loader del framework
             loader = new TgcSceneLoader();
-            //Inicializo cámara
-            Camara = new TgcFpsCamera(Input, (MapLength / 2) , - (MapLength / 2), (MapLength / 2), -(MapLength / 2));
-
-            Frustum.updateVolume(D3DDevice.Instance.Device.Transform.View, D3DDevice.Instance.Device.Transform.Projection);
-            //genero el mundo
-            MyWorld = new World(MediaDir, d3dDevice, loader, Camara, Frustum, MapLength, true);
 
             //creo usuario
             Player1 = new Player();
+
+            //genero el mundo
+            MyWorld = new World(MediaDir, d3dDevice, loader, Camara, Frustum, MapLength, true);
+
+            //Inicializo cámara
+            MyCamera = new TgcFpsCamera(Player1, Input, (MapLength / 2), -(MapLength / 2), (MapLength / 2), -(MapLength / 2));
+            Camara = MyCamera;
+
+            Frustum.updateVolume(D3DDevice.Instance.Device.Transform.View, D3DDevice.Instance.Device.Transform.Projection);
 
             //emisor de partículas
             emitter = new ParticleEmitter(MediaDir + "Textures\\smokeParticle.png", 10);
@@ -170,8 +176,36 @@ namespace TGC.Group.Model
             MyWorld.update();
             MenuInterface.update();
 
-            //TODO pasar esto a un método --> selección de objetos
-            if(Input.keyPressed(Key.LeftArrow))
+            //determino acciones en base al input
+            detectUserInput();
+            //resuelvo colisiones
+            testCollisions();
+            //controlo tiempos de emisión de partículas
+            if (emit)
+            {
+                if (emittedTime <= emissionTime)
+                {
+                    emittedTime += ElapsedTime;
+                }
+                else
+                {
+                    emit = false;
+                    emitter.Position = zeroVector;
+                }
+            }
+        }
+
+        /// <summary>
+        ///     método que detecta el input del usuario y realiza acciones en base a eso
+        /// </summary>
+        private void detectUserInput()
+        {
+            if (Input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            {
+                pickingRay.updateRay();
+                testPicking();
+            }
+            if (Input.keyPressed(Key.LeftArrow))
             {
                 Player1.selectPreviousItem();
                 soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Next);
@@ -201,35 +235,49 @@ namespace TGC.Group.Model
                 {
                     //falló la combinación
                     soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Wrong);
-                }else
+                }
+                else
                 {
                     //comb ok
                     soundPlayer.playActionSound(SoundPlayer.Actions.Success);
                 }
             }
+        }
 
-            //TODO pasar esto a un método --> testeo de colisiones
-            if (Input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
-            {
-                pickingRay.updateRay();
-                testPicking();
-            }
+        /// <summary>
+        ///     testea colisiones AABB
+        /// </summary>
+        private void testCollisions()
+        {
+            InteractiveObject collisioned = null;
 
-            //controlo tiempos de emisión de partículas
-            if (emit)
+            TgcBox cameraBox = TgcBox.fromExtremes(new Vector3(0, 0, 0), new Vector3(10, 10, 10));
+            if (Player1.Moving)
             {
-                if (emittedTime <= emissionTime)
+                foreach (InteractiveObject objeto in MyWorld.Objetos)
                 {
-                    emittedTime += ElapsedTime;
-                }
-                else
-                {
-                    emit = false;
-                    emitter.Position = zeroVector;
+                    if(objeto.mesh.Enabled)
+                    {
+                        
+                        cameraBox.Position = Camara.Position;
+
+                        if (TgcCollisionUtils.testAABBAABB(cameraBox.BoundingBox, objeto.mesh.BoundingBox))
+                        {
+                            //hubo colisión
+                            collisioned = objeto;
+                            //por ahora lo vuelvo a poner donde estaba
+                            //TODO fixear el métod oeste
+                            //MyCamera.updatePosition(MyCamera.PreviousPosition);
+                            Console.Out.WriteLine("cilisionado gordon - " + ElapsedTime);
+                        }
+                    }
                 }
             }
         }
 
+        /// <summary>
+        ///     testea colisiones de picking
+        /// </summary>
         private void testPicking()
         {
             //de los objetos visibles, testeo colisiones con el picking ray
