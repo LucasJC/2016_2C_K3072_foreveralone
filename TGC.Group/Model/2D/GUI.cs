@@ -54,17 +54,17 @@ namespace TGC.Group.Model
 
             itemSelectionSprite = null;
             itemSelectionSprite = new CustomSprite();
-            itemSelectionSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\Inventory\\icon-selection.png", Device.Device);
+            itemSelectionSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\items\\selection.png", Device.Device);
             itemSelectionSprite.Scaling = scaling;
 
             itemCombinationSprite = null;
             itemCombinationSprite = new CustomSprite();
-            itemCombinationSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\Inventory\\icon-selection-combination.png", Device.Device);
+            itemCombinationSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\items\\combination.png", Device.Device);
             itemCombinationSprite.Scaling = scaling;
 
             itemEquippedSprite = null;
             itemEquippedSprite = new CustomSprite();
-            itemEquippedSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\Inventory\\icon-equipped.png", Device.Device);
+            itemEquippedSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\items\\equipped.png", Device.Device);
             itemEquippedSprite.Scaling = scaling;
 
             //creo sprites para cada tipo de objeto
@@ -72,7 +72,7 @@ namespace TGC.Group.Model
             {
                 CustomSprite sprite = null;
                 sprite = new CustomSprite();
-                sprite.Bitmap = new CustomBitmap(mediaDir + "2d\\Inventory\\icon-" + type.ToString() + ".png", Device.Device);
+                sprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\items\\" + type.ToString() + ".png", Device.Device);
                 sprite.Scaling = scaling;
 
                 //agrego objetos a la lista
