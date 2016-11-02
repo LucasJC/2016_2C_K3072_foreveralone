@@ -8,6 +8,8 @@ using TGC.Core.Direct3D;
 using TGC.Core.Input;
 using TGC.Core.Utils;
 using TGC.Group.Model;
+using TGC.Core.Geometry;
+using TGC.Core.SceneLoader;
 
 namespace TGC.Examples.Camara
 {
@@ -23,8 +25,6 @@ namespace TGC.Examples.Camara
         public float MapXNegLimit = 0;
         public float MapZLimit = 0;
         public float MapZNegLimit = 0;
-
-        public Vector3 PreviousPosition { get; set; } = Vector3.Empty;
 
         private readonly Point mouseCenter; //Centro de mause 2D para ocultarlo.
 
@@ -47,6 +47,24 @@ namespace TGC.Examples.Camara
 
         private Player player1;
 
+        private float MovementSpeed;
+
+        public float RunningSpeed { get; set; }
+        public float WalkingSpeed { get; set; }
+        public float RotationSpeed { get; set; }
+        public float Gravity { get; set; }
+        public float MouseRotationSpeed { get; set; }
+        public float JumpSpeed { get; set; }
+
+        //para colisiones
+        public Vector3 PreviousPosition { get; set; }
+        public Vector3 PreviousLookAt { get; set; }
+        public Vector3 PreviousUpVector { get; set; }
+        public bool Collisioned { get; set; } = false;
+        public TgcBox CameraBox { get; set; } = TgcBox.fromExtremes(new Vector3(0, 0, 0), new Vector3(5, 5, 5));
+
+        private TgcMesh axe;
+
         public TgcFpsCamera(TgcD3dInput input)
         {
             Input = input;
@@ -65,11 +83,16 @@ namespace TGC.Examples.Camara
             updownRot = 0;
             cameraRotation = Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot);
             Gravity = 0.025f;
+
+            this.PreviousPosition = positionEye;
+            this.PreviousLookAt = directionView;
+            this.PreviousUpVector = DEFAULT_UP_VECTOR;
         }
 
-        public TgcFpsCamera(Player player1, TgcD3dInput input, float mapXLimit, float mapXNegLimit, float mapZLimit, float mapZNegLimit) : this(input)
+        public TgcFpsCamera(Player player1, TgcMesh axe, TgcD3dInput input, float mapXLimit, float mapXNegLimit, float mapZLimit, float mapZNegLimit) : this(input)
         {
             this.player1 = player1;
+            this.axe = axe;
             this.MapXLimit = mapXLimit;
             this.MapXNegLimit = mapXNegLimit;
             this.MapZLimit = mapZLimit;
@@ -116,15 +139,6 @@ namespace TGC.Examples.Camara
             }
         }
 
-        private float MovementSpeed;
-        public float RunningSpeed { get; set; }
-        public float WalkingSpeed { get; set; }
-        public float RotationSpeed { get; set; }
-        public float Gravity { get; set; }
-        public float MouseRotationSpeed { get; set; }
-
-        public float JumpSpeed { get; set; }
-
         /// <summary>
         ///     Cuando se elimina esto hay que desbloquear la camera.
         /// </summary>
@@ -132,12 +146,29 @@ namespace TGC.Examples.Camara
         {
             LockCam = false;
         }
-
+        private float timeStuck = 0;
         public override void UpdateCamera(float elapsedTime)
         {
 
+            if(Collisioned)
+            {
+                //si está colisionando acumulo tiempo de stuck para destrabarlo si es necesario
+                timeStuck += elapsedTime;
+                if(timeStuck >= 3)
+                {
+                    Collisioned = false;
+                    timeStuck = 0;
+                    this.SetCamera(new Vector3(0, 10, 0), new Vector3(0, 0, -1));
+                }
+                return;
+            }else
+            {
+                timeStuck = 0;
+            }
             //guardo pos anterior
             this.PreviousPosition = this.Position;
+            this.PreviousLookAt = this.LookAt;
+            this.PreviousUpVector = this.UpVector;
 
             var JumpTime = 3;
             var moveVector = new Vector3(0, 0, 0);
@@ -248,26 +279,9 @@ namespace TGC.Examples.Camara
             var cameraRotatedUpVector = Vector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
 
             base.SetCamera(positionEye, cameraFinalTarget, cameraRotatedUpVector);
-        }
 
-        /// <summary>
-        ///     método que actualiza la cámara con una posición pasada por parámetro
-        /// </summary>
-        /// <param name="newPosition"></param>
-        public void updatePosition(Vector3 newPosition)
-        {
-            //Calculamos la nueva posicion del ojo segun la rotacion actual de la camara.
-            var cameraRotatedPositionEye = Vector3.TransformNormal(newPosition, cameraRotation);
-            positionEye += cameraRotatedPositionEye;
-
-            //Calculamos el target de la camara, segun su direccion inicial y las rotaciones en screen space x,y.
-            var cameraRotatedTarget = Vector3.TransformNormal(directionView, cameraRotation);
-            var cameraFinalTarget = positionEye + cameraRotatedTarget;
-
-            var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
-            var cameraRotatedUpVector = Vector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
-
-            base.SetCamera(positionEye, cameraFinalTarget, cameraRotatedUpVector);
+            axe.Position = new Vector3(this.Position.X + 5, this.Position.Y - 20, this.Position.Z) + (10 * (cameraFinalTarget - positionEye));
+            axe.Transform = Matrix.Translation(axe.Position) * Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot) * Matrix.Scaling(axe.Scale);
         }
 
         /// <summary>
@@ -279,6 +293,11 @@ namespace TGC.Examples.Camara
         {
             positionEye = position;
             this.directionView = directionView;
+        }
+
+        public void render()
+        {
+            axe.render();
         }
     }
 }

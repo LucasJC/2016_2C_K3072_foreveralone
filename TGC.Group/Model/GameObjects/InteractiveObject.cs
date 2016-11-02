@@ -23,6 +23,7 @@ namespace TGC.Group.Model
         public ObjectTypes objectType;
         public List<InventoryObject.ObjectTypes> drops = new List<InventoryObject.ObjectTypes>();
         public bool alive = true;
+        public bool Solid = true;
 
         /// <summary>
         ///     constructor
@@ -34,6 +35,7 @@ namespace TGC.Group.Model
             this.mesh = mesh;
             this.material = material;
             this.objectType = type;
+            if (material.Equals(Materials.Plant)) this.Solid = false;
         }
 
         /// <summary>

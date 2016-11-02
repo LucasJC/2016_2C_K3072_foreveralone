@@ -118,8 +118,13 @@ namespace TGC.Group.Model
             //genero el mundo
             MyWorld = new World(MediaDir, d3dDevice, loader, Camara, Frustum, MapLength, true);
 
+            //inicializo mesh para hacha
+            TgcMesh axe = loader.loadSceneFromFile(MediaDir + "Meshes\\Hacha\\Hacha-TgcScene.xml").Meshes[0];
+            //axe.Scale = new Vector3(0.1f, 0.1f, 0.1f);
+            axe.Scale = new Vector3(1f, 1f, 1f);
+
             //Inicializo cámara
-            MyCamera = new TgcFpsCamera(Player1, Input, (MapLength / 2), -(MapLength / 2), (MapLength / 2), -(MapLength / 2));
+            MyCamera = new TgcFpsCamera(Player1, axe, Input, (MapLength / 2), -(MapLength / 2), (MapLength / 2), -(MapLength / 2));
             Camara = MyCamera;
 
             Frustum.updateVolume(D3DDevice.Instance.Device.Transform.View, D3DDevice.Instance.Device.Transform.Projection);
@@ -152,7 +157,6 @@ namespace TGC.Group.Model
             DamageText = GameUtils.createText("", 0, (D3DDevice.Instance.Height * 0.85f), 25, true);
             DamageText.Color = Color.MediumVioletRed;
             DamageText.Align = TgcText2D.TextAlign.CENTER;
-
         }
 
         /// <summary>
@@ -251,24 +255,66 @@ namespace TGC.Group.Model
         {
             InteractiveObject collisioned = null;
 
-            TgcBox cameraBox = TgcBox.fromExtremes(new Vector3(0, 0, 0), new Vector3(10, 10, 10));
             if (Player1.Moving)
             {
                 foreach (InteractiveObject objeto in MyWorld.Objetos)
                 {
-                    if(objeto.mesh.Enabled)
+                    if (objeto.mesh.Enabled && objeto.Solid)
                     {
-                        
-                        cameraBox.Position = Camara.Position;
+                        MyCamera.CameraBox.Position = Camara.Position;
+                        TgcBox cameraBox = MyCamera.CameraBox;
 
                         if (TgcCollisionUtils.testAABBAABB(cameraBox.BoundingBox, objeto.mesh.BoundingBox))
                         {
+                            StatusText.Text = "COLISIONANDO";
                             //hubo colisión
                             collisioned = objeto;
                             //por ahora lo vuelvo a poner donde estaba
                             //TODO fixear el métod oeste
                             //MyCamera.updatePosition(MyCamera.PreviousPosition);
-                            Console.Out.WriteLine("cilisionado gordon - " + ElapsedTime);
+                            //MyCamera.Collisioned = true;
+
+                            var movementRay = MyCamera.PreviousPosition - MyCamera.Position;
+
+                            var rs = Vector3.Empty;
+
+                            if (((cameraBox.BoundingBox.PMax.X > collisioned.mesh.BoundingBox.PMax.X && movementRay.X > 0) ||
+                            (cameraBox.BoundingBox.PMin.X < collisioned.mesh.BoundingBox.PMin.X && movementRay.X < 0)) &&
+                            ((cameraBox.BoundingBox.PMax.Z > collisioned.mesh.BoundingBox.PMax.Z && movementRay.Z > 0) ||
+                            (cameraBox.BoundingBox.PMin.Z < collisioned.mesh.BoundingBox.PMin.Z && movementRay.Z < 0)))
+                            {
+                                if (cameraBox.Position.X > collisioned.mesh.BoundingBox.PMin.X && cameraBox.Position.X < collisioned.mesh.BoundingBox.PMax.X)
+                                {
+                                    //El personaje esta contenido en el bounding X
+
+                                    rs = new Vector3(movementRay.X, movementRay.Y, 0);
+                                }
+                                if (cameraBox.Position.Z > collisioned.mesh.BoundingBox.PMin.Z &&
+                                    cameraBox.Position.Z < collisioned.mesh.BoundingBox.PMax.Z)
+                                {
+                                    //El personaje esta contenido en el bounding Z
+                                    rs = new Vector3(0, movementRay.Y, movementRay.Z);
+                                }
+                            }
+                            else
+                            {
+                                if ((cameraBox.BoundingBox.PMax.X > collisioned.mesh.BoundingBox.PMax.X && movementRay.X > 0) ||
+                                    (cameraBox.BoundingBox.PMin.X < collisioned.mesh.BoundingBox.PMin.X && movementRay.X < 0))
+                                {
+                                    rs = new Vector3(0, movementRay.Y, movementRay.Z);
+                                }
+                                if ((cameraBox.BoundingBox.PMax.Z > collisioned.mesh.BoundingBox.PMax.Z && movementRay.Z > 0) ||
+                                    (cameraBox.BoundingBox.PMin.Z < collisioned.mesh.BoundingBox.PMin.Z && movementRay.Z < 0))
+                                {
+                                    rs = new Vector3(movementRay.X, movementRay.Y, 0);
+                                }
+                            }
+
+                            MyCamera.SetCamera(MyCamera.Position - rs, MyCamera.PreviousLookAt, MyCamera.PreviousUpVector);
+                            break;
+                        }else
+                        {
+                            StatusText.Text = "NO COL";
                         }
                     }
                 }
@@ -394,7 +440,9 @@ namespace TGC.Group.Model
             DamageText.render();
             MyWorld.render();
             MenuInterface.render();
-   
+
+            MyCamera.render();
+
             if(null != collidedObject)
             {
                 //un objeto fue objetivo de una acción

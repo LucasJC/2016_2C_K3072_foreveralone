@@ -193,7 +193,8 @@ namespace TGC.Group.Model
         {
             TgcMesh teapotMesh = Loader.loadSceneFromFile(MediaDir + "Meshes\\Teapot\\Teapot-TgcScene.xml").Meshes[0];
             teapotMesh.Scale = new Vector3(0.5f, 0.5f, 0.5f);
-            teapotMesh.Position = new Vector3(0, teapotMesh.BoundingBox.PMax.Y * 0.75f, 0);
+            //teapotMesh.Position = new Vector3(0, teapotMesh.BoundingBox.PMax.Y * 0.75f, 0);
+            teapotMesh.Position = GameUtils.getRandomPositionVector();
             teapotMesh.Transform = Matrix.Scaling(teapotMesh.Scale) * Matrix.Translation(teapotMesh.Position);
             teapotMesh.updateBoundingBox();
             if (null == Objetos) Objetos = new List<InteractiveObject>();
