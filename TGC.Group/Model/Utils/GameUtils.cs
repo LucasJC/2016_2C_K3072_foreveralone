@@ -46,8 +46,8 @@ namespace TGC.Group.Model
         public static TgcText2D createText(String value)
         {
             TgcText2D text = new TgcText2D();
-            text.changeFont(new Font(FontFamily.GenericMonospace, GUI.DefaultFontSize, FontStyle.Regular));
-            text.Color = Color.DarkGray;
+            text.changeFont(new Font(FontFamily.GenericMonospace, GUI.DefaultFontSize, FontStyle.Bold));
+            text.Color = Color.LimeGreen;
             text.Align = TgcText2D.TextAlign.LEFT;
             text.Text = value;
             return text;

@@ -33,6 +33,11 @@ namespace TGC.Group.Model
         public int Thirst { get; set; } = 100;
 
         /// <summary>
+        ///     indica que el jugador recibió daño recientemente
+        /// </summary>
+        public bool Hurt { get; set; } = false;
+
+        /// <summary>
         ///     hambre del jugador
         /// </summary>
         public int Hunger { get; set; } = 100;
@@ -167,11 +172,14 @@ namespace TGC.Group.Model
         public int beHit(int hitPoints)
         {
             this.LifePoints -= hitPoints;
+            this.Hurt = true;
             if(this.LifePoints < 0)
             {
                 this.LifePoints = 0;
-                this.Alive = false;
             }
+
+            if (this.LifePoints == 0) this.Alive = false;
+
             return this.LifePoints;
         }
 
@@ -351,6 +359,11 @@ namespace TGC.Group.Model
             {   //Seed
                 this.Hunger = this.Hunger + 5;
                 if (this.Hunger > 100) this.Hunger = 100;
+                result = true;
+            }
+            else if (InventoryObject.ObjectTypes.Rock.Equals(obj.Type))
+            {   //Roca ?
+                this.beHit(25);
                 result = true;
             }
             else if (InventoryObject.ObjectTypes.AlienMeat.Equals(obj.Type))

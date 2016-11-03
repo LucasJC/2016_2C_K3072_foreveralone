@@ -41,6 +41,9 @@ namespace TGC.Examples.Camara
         private bool lockCam;
         private Vector3 positionEye;
 
+        // bloquea el movimiento
+        public bool DisableMovement { get; set; } = false;
+
         private bool Jumping = false;
         private bool Falling = false;
         private float JumpingTime = 0f;
@@ -61,7 +64,7 @@ namespace TGC.Examples.Camara
         public Vector3 PreviousLookAt { get; set; }
         public Vector3 PreviousUpVector { get; set; }
         public bool Collisioned { get; set; } = false;
-        public TgcBox CameraBox { get; set; } = TgcBox.fromExtremes(new Vector3(0, 0, 0), new Vector3(5, 5, 5));
+        public TgcBox CameraBox { get; set; } = TgcBox.fromExtremes(new Vector3(0, 0, 0), new Vector3(2, 2, 2));
         public Key LastMovementKey;
 
         private TgcMesh axe;
@@ -147,176 +150,173 @@ namespace TGC.Examples.Camara
         {
             LockCam = false;
         }
-        private float timeStuck = 0;
         public override void UpdateCamera(float elapsedTime)
         {
-            /*
-            if(Collisioned)
+            if (!DisableMovement)
             {
-                //si está colisionando acumulo tiempo de stuck para destrabarlo si es necesario
-                timeStuck += elapsedTime;
-                if(timeStuck >= 3)
+                //guardo pos anterior
+                this.PreviousPosition = this.Position;
+                this.PreviousLookAt = this.LookAt;
+                this.PreviousUpVector = this.UpVector;
+
+                var JumpTime = 3;
+                var moveVector = new Vector3(0, 0, 0);
+
+                if (player1.Stamina > 0 && Input.keyDown(Key.LeftShift))
                 {
-                    Collisioned = false;
-                    timeStuck = 0;
-                    this.SetCamera(new Vector3(0, 10, 0), new Vector3(0, 0, -1));
-                }
-                return;
-            }else
-            {
-                timeStuck = 0;
-            }
-            */
-            //guardo pos anterior
-            this.PreviousPosition = this.Position;
-            this.PreviousLookAt = this.LookAt;
-            this.PreviousUpVector = this.UpVector;
-
-            var JumpTime = 3;
-            var moveVector = new Vector3(0, 0, 0);
-
-            if (Input.keyDown(Key.LeftShift))
-            {
-                this.MovementSpeed = RunningSpeed;
-            }else
-            {
-                this.MovementSpeed = WalkingSpeed;
-            }
-
-            player1.Moving = false;
-
-            //Forward
-            if (Input.keyDown(Key.W))
-            {
-                if(Collisioned && LastMovementKey == Key.W)
-                {
-                    //no se puede mover en esta dirección
-                }else
-                {
-                    moveVector += new Vector3(0, 0, -1) * MovementSpeed;
-                    player1.Moving = true;
-                    LastMovementKey = Key.W;
-                }
-            }
-
-            //Backward
-            if (Input.keyDown(Key.S))
-            {
-                if (Collisioned && LastMovementKey == Key.S)
-                {
-                    //no se puede mover en esta dirección
+                    this.MovementSpeed = RunningSpeed;
                 }
                 else
                 {
-                    moveVector += new Vector3(0, 0, 1) * MovementSpeed;
-                    player1.Moving = true;
-                    LastMovementKey = Key.S;
-                }   
-            }
-
-            //Strafe right
-            if (Input.keyDown(Key.D))
-            {
-                if (Collisioned && LastMovementKey == Key.D)
-                {
-                    //no se puede mover en esta dirección
+                    this.MovementSpeed = WalkingSpeed;
                 }
-                else
-                {
-                    moveVector += new Vector3(-1, 0, 0) * MovementSpeed;
-                    player1.Moving = true;
-                    LastMovementKey = Key.D;
-                }  
-            }
 
-            //Strafe left
-            if (Input.keyDown(Key.A))
-            {
-                if (Collisioned && LastMovementKey == Key.A)
+                player1.Moving = false;
+
+                //Forward
+                if (Input.keyDown(Key.W))
                 {
-                    //no se puede mover en esta dirección
+                    if (Collisioned && LastMovementKey == Key.W)
+                    {
+                        //no se puede mover en esta dirección
+                    }
+                    else
+                    {
+                        moveVector += new Vector3(0, 0, -1) * MovementSpeed;
+                        player1.Moving = true;
+                        LastMovementKey = Key.W;
+                    }
                 }
-                else
-                {
-                    moveVector += new Vector3(1, 0, 0) * MovementSpeed;
-                    player1.Moving = true;
-                    LastMovementKey = Key.A;
-                }   
-            }
 
-            //Jump
-            if (Input.keyPressed(Key.Space))
-            {
-                if (!Jumping)
+                //Backward
+                if (Input.keyDown(Key.S))
                 {
-                    Jumping = true;
+                    if (Collisioned && LastMovementKey == Key.S)
+                    {
+                        //no se puede mover en esta dirección
+                    }
+                    else
+                    {
+                        moveVector += new Vector3(0, 0, 1) * MovementSpeed;
+                        player1.Moving = true;
+                        LastMovementKey = Key.S;
+                    }
                 }
-            }
-            if (Jumping)
-            {
-                if (JumpingTime < JumpTime)  moveVector += new Vector3(0, 1, 0) * JumpSpeed;
-                if (JumpingTime >= JumpTime)
+
+                //Strafe right
+                if (Input.keyDown(Key.D))
                 {
-                    Jumping = false;
-                    Falling = true;
-                    JumpingTime = 0;
+                    if (Collisioned && LastMovementKey == Key.D)
+                    {
+                        //no se puede mover en esta dirección
+                    }
+                    else
+                    {
+                        moveVector += new Vector3(-1, 0, 0) * MovementSpeed;
+                        player1.Moving = true;
+                        LastMovementKey = Key.D;
+                    }
                 }
-                JumpingTime += elapsedTime * 10;
+
+                //Strafe left
+                if (Input.keyDown(Key.A))
+                {
+                    if (Collisioned && LastMovementKey == Key.A)
+                    {
+                        //no se puede mover en esta dirección
+                    }
+                    else
+                    {
+                        moveVector += new Vector3(1, 0, 0) * MovementSpeed;
+                        player1.Moving = true;
+                        LastMovementKey = Key.A;
+                    }
+                }
+
+                //Jump
+                if (Input.keyPressed(Key.Space))
+                {
+                    if (!Jumping)
+                    {
+                        Jumping = true;
+                    }
+                }
+                if (Jumping)
+                {
+                    if (JumpingTime < JumpTime) moveVector += new Vector3(0, 1, 0) * JumpSpeed;
+                    if (JumpingTime >= JumpTime)
+                    {
+                        Jumping = false;
+                        Falling = true;
+                        JumpingTime = 0;
+                    }
+                    JumpingTime += elapsedTime * 10;
+                }
+
+                if (Input.keyPressed(Key.L) || Input.keyPressed(Key.Escape))
+                {
+                    LockCam = !lockCam;
+                }
+
+                //Solo rotar si se esta aprentando el boton izq del mouse
+                if (lockCam || Input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+                {
+                    leftrightRot -= -Input.XposRelative * MouseRotationSpeed;
+                    updownRot -= Input.YposRelative * MouseRotationSpeed;
+                    //Se actualiza matrix de rotacion, para no hacer este calculo cada vez y solo cuando en verdad es necesario.
+                    cameraRotation = Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot);
+                }
+
+                if (lockCam)
+                    Cursor.Position = mouseCenter;
+
+                //Calculamos la nueva posicion del ojo segun la rotacion actual de la camara.
+                var cameraRotatedPositionEye = Vector3.TransformNormal(moveVector * elapsedTime, cameraRotation);
+                positionEye += cameraRotatedPositionEye;
+
+                //IMPORTANTE - esta parte hardcodea los límites del mapa -- hay que rehacerla de alguna manera más copada
+                if (Falling && positionEye.Y > FixedHeight)
+                {
+                    positionEye.Y = positionEye.Y - JumpSpeed * elapsedTime + 0.5f * Gravity * elapsedTime * elapsedTime;
+
+                    if (positionEye.Y <= FixedHeight) Falling = false;
+
+                }
+                else if (!Jumping && positionEye.Y > FixedHeight)
+                {
+                    positionEye.Y = FixedHeight;
+                }
+                else if (positionEye.Y < FixedHeight)
+                {
+                    positionEye.Y = FixedHeight;
+                }
+
+                if (MapXLimit != 0 && positionEye.X >= MapXLimit * .97f) positionEye.X = MapXLimit * .97f;
+                if (MapXNegLimit != 0 && positionEye.X <= MapXNegLimit * .97f) positionEye.X = MapXNegLimit * .97f;
+                if (MapZLimit != 0 && positionEye.Z >= MapZLimit * .97f) positionEye.Z = MapZLimit * .97f;
+                if (MapZNegLimit != 0 && positionEye.Z <= MapZNegLimit * .97f) positionEye.Z = MapZNegLimit * .97f;
+
+                //Calculamos el target de la camara, segun su direccion inicial y las rotaciones en screen space x,y.
+                var cameraRotatedTarget = Vector3.TransformNormal(directionView, cameraRotation);
+                var cameraFinalTarget = positionEye + cameraRotatedTarget;
+
+                var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
+                var cameraRotatedUpVector = Vector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
+
+                base.SetCamera(positionEye, cameraFinalTarget, cameraRotatedUpVector);
+
+                axe.Position = new Vector3(positionEye.X + 2, positionEye.Y - 2, positionEye.Z);
+                axe.Transform = Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot) * Matrix.Translation(axe.Position) * Matrix.Scaling(axe.Scale);
             }
+        }
 
-            if (Input.keyPressed(Key.L) || Input.keyPressed(Key.Escape))
-            {
-                LockCam = !lockCam;
-            }
-
-            //Solo rotar si se esta aprentando el boton izq del mouse
-            if (lockCam || Input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_LEFT))
-            {
-                leftrightRot -= -Input.XposRelative * MouseRotationSpeed;
-                updownRot -= Input.YposRelative * MouseRotationSpeed;
-                //Se actualiza matrix de rotacion, para no hacer este calculo cada vez y solo cuando en verdad es necesario.
-                cameraRotation = Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot);
-            }
-
-            if (lockCam)
-                Cursor.Position = mouseCenter;
-
-            //Calculamos la nueva posicion del ojo segun la rotacion actual de la camara.
-            var cameraRotatedPositionEye = Vector3.TransformNormal(moveVector * elapsedTime, cameraRotation);
-            positionEye += cameraRotatedPositionEye;
-
-            //IMPORTANTE - esta parte hardcodea los límites del mapa -- hay que rehacerla de alguna manera más copada
-            if (Falling && positionEye.Y > FixedHeight)
-            {
-                positionEye.Y = positionEye.Y - JumpSpeed * elapsedTime + 0.5f * Gravity * elapsedTime * elapsedTime;
-
-                if (positionEye.Y <= FixedHeight) Falling = false;
-
-            } else if (!Jumping && positionEye.Y > FixedHeight) {
-                positionEye.Y = FixedHeight;
-            } else if (positionEye.Y < FixedHeight)
-            {
-                positionEye.Y = FixedHeight;
-            }
-
-            if (MapXLimit != 0 && positionEye.X >= MapXLimit * .97f) positionEye.X = MapXLimit*.97f;
-            if (MapXNegLimit != 0 && positionEye.X <= MapXNegLimit * .97f) positionEye.X = MapXNegLimit * .97f;
-            if (MapZLimit != 0 && positionEye.Z >= MapZLimit * .97f) positionEye.Z = MapZLimit * .97f;
-            if (MapZNegLimit != 0 && positionEye.Z <= MapZNegLimit * .97f) positionEye.Z = MapZNegLimit * .97f;
-
-            //Calculamos el target de la camara, segun su direccion inicial y las rotaciones en screen space x,y.
-            var cameraRotatedTarget = Vector3.TransformNormal(directionView, cameraRotation);
-            var cameraFinalTarget = positionEye + cameraRotatedTarget;
-
-            var cameraOriginalUpVector = DEFAULT_UP_VECTOR;
-            var cameraRotatedUpVector = Vector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
-
-            base.SetCamera(positionEye, cameraFinalTarget, cameraRotatedUpVector);
-
-            //axe.Position = new Vector3(this.Position.X + 5, this.Position.Y - 20, this.Position.Z) + (10 * (cameraFinalTarget - positionEye));
-            //axe.Transform = Matrix.Translation(axe.Position) * Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot) * Matrix.Scaling(axe.Scale);
-            axe.Position = new Vector3(positionEye.X + 2, positionEye.Y - 2, positionEye.Z);
-            axe.Transform = Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot) * Matrix.Translation(axe.Position) * Matrix.Scaling(axe.Scale);
+        /// <summary>
+        ///     cancela el movimiento de cámara ya que el usuario murió
+        /// </summary>
+        internal void gameOver()
+        {
+            this.lockCam = false;
+            this.DisableMovement = true;
         }
 
         /// <summary>

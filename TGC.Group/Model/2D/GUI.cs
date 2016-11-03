@@ -19,25 +19,39 @@ namespace TGC.Group.Model
     class GUI : Renderable
     {
         public static Dictionary<InventoryObject.ObjectTypes, CustomSprite> InventorySprites { get; set; }
-        public Dictionary<Vector2, InventoryObject> CurrentInventoryPositions {get;set;}
+        public static Dictionary<World.Weather, CustomSprite> WeatherSprites { get; set; }
         public enum StatusBarElements { LifePoints, Weather, Hunger, Thirst, Player }
         private int usedSpace;
         private TgcText2D dayTime;
         private Drawer2D drawer;
         private Dictionary<StatusBarElements, TgcText2D> statusBarContent;
-        private CustomSprite StatusBar;
         private CustomSprite itemSelectionSprite;
         private CustomSprite itemCombinationSprite;
         private CustomSprite itemEquippedSprite;
+        private CustomSprite gameOverSprite;
+
+        //status sprites
+        private CustomSprite hpBarSprite;
+        private CustomSprite hpBarFrameSprite;
+        private CustomSprite hungerBarSprite;
+        private CustomSprite hungerBarFrameSprite;
+        private CustomSprite thirstBarSprite;
+        private CustomSprite thirstBarFrameSprite;
+        private CustomSprite staminaBarSprite;
+        private CustomSprite staminaBarFrameSprite;
+
+        private bool GameOver = false;
         private Player Player1;
         private GameModel gameModelInstance;
         private D3DDevice Device;
-
-        public static int DefaultFontSize { get; set; } = 12;
+        private String gameOverSpriteLocation;
+       
+        public static int DefaultFontSize { get; set; } = 20;
 
 
         static GUI() {
             InventorySprites = new Dictionary<InventoryObject.ObjectTypes, CustomSprite>();
+            WeatherSprites = new Dictionary<World.Weather, CustomSprite>();
         }
 
         public GUI(String mediaDir, D3DDevice device, Player player, GameModel gameModel)
@@ -45,7 +59,9 @@ namespace TGC.Group.Model
             Device = device;
             Player1 = player;
             gameModelInstance = gameModel;
-            
+
+            gameOverSpriteLocation = mediaDir + "2d\\gui\\gameover.png";
+
             drawer = new Drawer2D();
             statusBarContent = new Dictionary<StatusBarElements, TgcText2D>();
 
@@ -79,28 +95,61 @@ namespace TGC.Group.Model
                 InventorySprites.Add(type, sprite);
             }
 
-            //armo status bar
-            StatusBar = new CustomSprite();
-            StatusBar.Bitmap = new CustomBitmap(mediaDir + "2d\\statusBar.png", Device.Device);
-            StatusBar.Scaling = scaling; 
+            //creo sprites para cada tipo de clima
+            foreach (World.Weather weather in Enum.GetValues(typeof(World.Weather)))
+            {
+                CustomSprite sprite = null;
+                sprite = new CustomSprite();
+                sprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\weather_" + weather.ToString() + ".png", Device.Device);
+                sprite.Scaling = scaling;
 
-            float barHeight = (StatusBar.Bitmap.Size.Height * StatusBar.Scaling.Y);
-            float barWidth = (StatusBar.Bitmap.Size.Width * StatusBar.Scaling.Y);
-            StatusBar.Position = new Vector2(FastMath.Max(Device.Width - barWidth, 0), FastMath.Max(Device.Height - barHeight, 0));
+                //agrego objetos a la lista
+                WeatherSprites.Add(weather, sprite);
+            }
 
-            //textos de status
-            float textHeight = (GameUtils.createText("ejemplo").Size.Height / (barHeight / 5));
-            float textWidth = (Device.Width - (barWidth * 0.9f)) ;
-            statusBarContent.Add(StatusBarElements.Player, GameUtils.createText("jugador: ", textWidth, Device.Height - (textHeight * 5) - barHeight * 0.1f));
-            statusBarContent.Add(StatusBarElements.LifePoints, GameUtils.createText("vida: ", textWidth, Device.Height - (textHeight * 4) - barHeight * 0.1f));
-            statusBarContent.Add(StatusBarElements.Weather, GameUtils.createText("clima: ", textWidth, Device.Height - (textHeight * 3) - barHeight * 0.1f));
-            statusBarContent.Add(StatusBarElements.Hunger, GameUtils.createText("hambre: ", textWidth, Device.Height - (textHeight * 2) - barHeight * 0.1f));
-            statusBarContent.Add(StatusBarElements.Thirst, GameUtils.createText("sed: ", textWidth, Device.Height - (textHeight * 1) - barHeight * 0.1f));
-
+            //fecha y hora
             //contabilizo texto fps
-            usedSpace += (int) (DefaultFontSize * 1.1f);
-            dayTime = GameUtils.createText("", 0, usedSpace);
             usedSpace += (int)(DefaultFontSize * 1.1f);
+            dayTime = GameUtils.createText("", 0, usedSpace);
+
+            //barras de status
+            hpBarSprite = new CustomSprite();
+            hpBarSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\hp-bar.png", Device.Device);
+            hpBarSprite.Position = new Vector2(Device.Width - (hpBarSprite.Bitmap.Width * hpBarSprite.Scaling.X), Device.Height - (hpBarSprite.Bitmap.Height * 1.05f));
+
+            hpBarFrameSprite = new CustomSprite();
+            hpBarFrameSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\frame-hp-bar.png", Device.Device);
+            hpBarFrameSprite.Position = new Vector2(Device.Width - (hpBarSprite.Bitmap.Width * hpBarSprite.Scaling.X), Device.Height - (hpBarSprite.Bitmap.Height * 1.05f));
+
+            hungerBarSprite = new CustomSprite();
+            hungerBarSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\hunger-bar.png", Device.Device);
+            hungerBarSprite.Position = new Vector2(Device.Width - (hungerBarSprite.Bitmap.Width * hungerBarSprite.Scaling.X), hpBarSprite.Position.Y - (hungerBarSprite.Bitmap.Height * 1.05f));
+
+            hungerBarFrameSprite = new CustomSprite();
+            hungerBarFrameSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\frame-hunger-bar.png", Device.Device);
+            hungerBarFrameSprite.Position = new Vector2(Device.Width - (hungerBarSprite.Bitmap.Width * hungerBarSprite.Scaling.X), hpBarSprite.Position.Y - (hungerBarSprite.Bitmap.Height * 1.05f));
+
+            thirstBarSprite = new CustomSprite();
+            thirstBarSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\thirst-bar.png", Device.Device);
+            thirstBarSprite.Position = new Vector2(Device.Width - (thirstBarSprite.Bitmap.Width * thirstBarSprite.Scaling.X), hungerBarSprite.Position.Y - (thirstBarSprite.Bitmap.Height * 1.05f));
+
+            thirstBarFrameSprite = new CustomSprite();
+            thirstBarFrameSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\frame-thirst-bar.png", Device.Device);
+            thirstBarFrameSprite.Position = new Vector2(Device.Width - (thirstBarSprite.Bitmap.Width * thirstBarSprite.Scaling.X), hungerBarSprite.Position.Y - (thirstBarSprite.Bitmap.Height * 1.05f));
+
+            staminaBarSprite = new CustomSprite();
+            staminaBarSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\stamina-bar.png", Device.Device);
+            staminaBarSprite.Position = new Vector2(Device.Width - (staminaBarSprite.Bitmap.Width * staminaBarSprite.Scaling.X), thirstBarSprite.Position.Y - (staminaBarSprite.Bitmap.Height * 1.05f));
+
+            staminaBarFrameSprite = new CustomSprite();
+            staminaBarFrameSprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\frame-stamina-bar.png", Device.Device);
+            staminaBarFrameSprite.Position = new Vector2(Device.Width - (staminaBarSprite.Bitmap.Width * staminaBarSprite.Scaling.X), thirstBarSprite.Position.Y - (staminaBarSprite.Bitmap.Height * 1.05f));
+
+            foreach (World.Weather weather in Enum.GetValues(typeof(World.Weather)))
+            {
+                CustomSprite sprite = WeatherSprites[weather];
+                sprite.Position = new Vector2(Device.Width - sprite.Bitmap.Width / 3, staminaBarSprite.Position.Y - (sprite.Bitmap.Height * 1.05f));
+            }
 
         }
 
@@ -157,8 +206,21 @@ namespace TGC.Group.Model
                 count++;
             }
 
-            //dibujo barra de estado
-            drawer.DrawSprite(StatusBar);
+            //dibujo barras de estado
+            drawer.DrawSprite(hpBarSprite);
+            drawer.DrawSprite(hpBarFrameSprite);
+            drawer.DrawSprite(staminaBarSprite);
+            drawer.DrawSprite(staminaBarFrameSprite);
+            drawer.DrawSprite(thirstBarSprite);
+            drawer.DrawSprite(thirstBarFrameSprite);
+            drawer.DrawSprite(hungerBarSprite);
+            drawer.DrawSprite(hungerBarFrameSprite);
+            drawer.DrawSprite(WeatherSprites[Player1.Weather]);
+
+            if (GameOver)
+            {
+                drawer.DrawSprite(gameOverSprite);
+            }
 
             drawer.EndDrawSprite();
 
@@ -169,23 +231,26 @@ namespace TGC.Group.Model
             }
         }
 
-        public void update()
+        /// <summary>
+        ///     método que muestra el sprite de game over
+        /// </summary>
+        internal void gameOver()
         {
-            updateStatusBarContent(Player1);
-            dayTime.Text = "day: " + gameModelInstance.Day + ", time: " + gameModelInstance.Hour + ":" + ((gameModelInstance.Minute.ToString().Length == 1) ? "0" : "") + gameModelInstance.Minute + ":" + ((gameModelInstance.Seconds.ToString().Length == 1) ? "0" : "") + gameModelInstance.Seconds + "(" + gameModelInstance.Cycle + ")";
+            gameOverSprite = new CustomSprite();
+            gameOverSprite.Bitmap = new CustomBitmap(gameOverSpriteLocation, Device.Device);
+            gameOverSprite.Position = new Vector2(FastMath.Max((Device.Width - gameOverSprite.Bitmap.Width) / 2, 0), FastMath.Max((Device.Height -gameOverSprite.Bitmap.Height) / 2, 0));
+            GameOver = true;
         }
 
-        /// <summary>
-        ///     actualiza los textos de la barra de estado
-        /// </summary>
-        /// <param name="player"></param>
-        private void updateStatusBarContent(Player player)
+        public void update()
         {
-            this.statusBarContent[StatusBarElements.Player].Text = "jugador: " + player.Name;
-            this.statusBarContent[StatusBarElements.LifePoints].Text = "vida: " + player.LifePoints;
-            this.statusBarContent[StatusBarElements.Weather].Text = "clima: " + player.Weather;
-            this.statusBarContent[StatusBarElements.Hunger].Text = "hambre: " + player.Hunger;
-            this.statusBarContent[StatusBarElements.Thirst].Text = "sed: " + player.Thirst;
+            dayTime.Text = "day: " + gameModelInstance.Day + ", time: " + gameModelInstance.Hour + ":" + ((gameModelInstance.Minute.ToString().Length == 1) ? "0" : "") + gameModelInstance.Minute + ":" + ((gameModelInstance.Seconds.ToString().Length == 1) ? "0" : "") + gameModelInstance.Seconds + "(" + gameModelInstance.Cycle + ")";
+
+            //actualiz barras de status
+            hpBarSprite.Scaling = new Vector2(((float)Player1.LifePoints) / 100f, 1);
+            hungerBarSprite.Scaling = new Vector2(((float)Player1.Hunger) / 100f, 1);
+            thirstBarSprite.Scaling = new Vector2(((float)Player1.Thirst) / 100f, 1);
+            staminaBarSprite.Scaling = new Vector2(((float)Player1.Stamina) / 100f, 1);
         }
     }
 }

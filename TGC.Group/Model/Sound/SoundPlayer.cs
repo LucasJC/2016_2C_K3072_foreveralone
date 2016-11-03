@@ -15,7 +15,7 @@ namespace TGC.Group.Model
     {
         //TODO mover a donde corresponda
         public enum EnvironmentConditions { Rain, Wind};
-        public enum Actions { TreeFall, Drink, OpenChest, Success, Menu_Wrong, Menu_Next, Menu_Select }
+        public enum Actions { TreeFall, Drink, OpenChest, Hurt, Die, Jump, Success, Menu_Wrong, Menu_Next, Menu_Select, Menu_Discard }
 
         private Dictionary<InteractiveObject.Materials, TgcStaticSound> MaterialSounds;
         private Dictionary<EnvironmentConditions, TgcStaticSound> EnvironmentSounds;
@@ -70,6 +70,12 @@ namespace TGC.Group.Model
             chestOpenSound.loadSound(SoundsPath + "Actions\\chest_open.wav", directSound.DsDevice);
             TgcStaticSound successSound = new TgcStaticSound();
             successSound.loadSound(SoundsPath + "Actions\\success.wav", directSound.DsDevice);
+            TgcStaticSound hurtSound = new TgcStaticSound();
+            hurtSound.loadSound(SoundsPath + "Actions\\hurt.wav", directSound.DsDevice);
+            TgcStaticSound dieSound = new TgcStaticSound();
+            dieSound.loadSound(SoundsPath + "Actions\\die.wav", directSound.DsDevice);
+            TgcStaticSound jumpSound = new TgcStaticSound();
+            jumpSound.loadSound(SoundsPath + "Actions\\jump.wav", directSound.DsDevice);
             //menu
             TgcStaticSound menuWrongSound = new TgcStaticSound();
             menuWrongSound.loadSound(SoundsPath + "Actions\\menu_wrong.wav", directSound.DsDevice);
@@ -77,12 +83,18 @@ namespace TGC.Group.Model
             menuNextSound.loadSound(SoundsPath + "Actions\\menu_next.wav", directSound.DsDevice);
             TgcStaticSound menuSelectSound = new TgcStaticSound();
             menuSelectSound.loadSound(SoundsPath + "Actions\\menu_select.wav", directSound.DsDevice);
+            TgcStaticSound menuDiscardSound = new TgcStaticSound();
+            menuDiscardSound.loadSound(SoundsPath + "Actions\\menu_discard.wav", directSound.DsDevice);
 
             ActionSounds = new Dictionary<Actions, TgcStaticSound>();
             ActionSounds.Add(Actions.Drink, drinkSound);
             ActionSounds.Add(Actions.TreeFall, treeFallSound);
             ActionSounds.Add(Actions.OpenChest, chestOpenSound);
             ActionSounds.Add(Actions.Success, successSound);
+            ActionSounds.Add(Actions.Hurt, hurtSound);
+            ActionSounds.Add(Actions.Die, dieSound);
+            ActionSounds.Add(Actions.Jump, jumpSound);
+            ActionSounds.Add(Actions.Menu_Discard, menuDiscardSound);
             ActionSounds.Add(Actions.Menu_Wrong, menuWrongSound);
             ActionSounds.Add(Actions.Menu_Next, menuNextSound);
             ActionSounds.Add(Actions.Menu_Select, menuSelectSound);

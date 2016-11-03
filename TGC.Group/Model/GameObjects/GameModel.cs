@@ -71,16 +71,20 @@ namespace TGC.Group.Model
         private TgcPickingRay pickingRay;
         private bool collided = false;
         private Vector3 collisionPoint;
+        private InteractiveObject pickedObject = null;
         private InteractiveObject collidedObject = null;
 
         //mensajes
-        private TgcText2D StatusText;
-        private TgcText2D DamageText;
-
+        private TgcText2D TopRightText;
+        private TgcText2D CenterText;
+        private float timerCenterText = 0;
+        private float timerTopRightText = 0;
         //Semilla para randoms
         public static int RandomSeed { get; } = 666;
         //Dimensiones de cada cuadrante del mapa
         public static int MapLength { get; } = 2000;
+
+        private bool gameOver = false;
 
         private static Vector3 zeroVector = new Vector3(0f, 0f, 0f);
 
@@ -149,13 +153,13 @@ namespace TGC.Group.Model
             //gui
             MenuInterface = new GUI(MediaDir, D3DDevice.Instance, Player1, this);
 
-            StatusText = GameUtils.createText("", 0, 0, 20, true);
-            StatusText.Color = Color.Beige;
-            StatusText.Align = TgcText2D.TextAlign.RIGHT;
+            TopRightText = GameUtils.createText("", 0, 0, 20, true);
+            TopRightText.Color = Color.LightGray;
+            TopRightText.Align = TgcText2D.TextAlign.RIGHT;
 
-            DamageText = GameUtils.createText("", 0, (D3DDevice.Instance.Height * 0.85f), 25, true);
-            DamageText.Color = Color.MediumVioletRed;
-            DamageText.Align = TgcText2D.TextAlign.CENTER;
+            CenterText = GameUtils.createText("", 0, (D3DDevice.Instance.Height * 0.85f), 25, true);
+            CenterText.Color = Color.DodgerBlue;
+            CenterText.Align = TgcText2D.TextAlign.CENTER;
         }
 
         /// <summary>
@@ -167,35 +171,58 @@ namespace TGC.Group.Model
         {
             PreUpdate();
 
-            //controlo tiempo
-            time += ElapsedTime;
-            updateDayTime(ElapsedTime);
-
-            checkTimeEvents();
-
-            //reinicio estado de colisiones
-            collided = false;
-            collidedObject = null;
+            //si el jugador fue herido entonces reproduzco sonido de dolor
+            if(Player1.Hurt)
+            {
+                soundPlayer.playActionSound(SoundPlayer.Actions.Hurt);
+                Player1.Hurt = false;
+            }
 
             MyWorld.update();
             MenuInterface.update();
 
-            //determino acciones en base al input
-            detectUserInput();
-            //resuelvo colisiones
-            testCollisions();
-            //controlo tiempos de emisión de partículas
-            if (emit)
+            if (Player1.Alive)
             {
-                if (emittedTime <= emissionTime)
+                //controlo tiempo
+                time += ElapsedTime;
+                updateDayTime(ElapsedTime);
+
+                checkTimeEvents();
+
+                checkCurrentTexts();
+
+                //reinicio estado de colisiones
+                collided = false;
+                pickedObject = null;
+
+                //determino acciones en base al input
+                detectUserInput();
+                //resuelvo colisiones
+                testCollisions();
+                //controlo tiempos de emisión de partículas
+                if (emit)
                 {
-                    emittedTime += ElapsedTime;
+                    if (emittedTime <= emissionTime)
+                    {
+                        emittedTime += ElapsedTime;
+                    }
+                    else
+                    {
+                        emit = false;
+                        emitter.Position = zeroVector;
+                    }
                 }
-                else
+            }
+            else
+            {
+                //muerto :(
+                if (!gameOver)
                 {
-                    emit = false;
-                    emitter.Position = zeroVector;
+                    soundPlayer.playActionSound(SoundPlayer.Actions.Die);
+                    MyCamera.gameOver();
+                    MenuInterface.gameOver();
                 }
+                this.gameOver = true;
             }
         }
 
@@ -209,17 +236,21 @@ namespace TGC.Group.Model
                 pickingRay.updateRay();
                 testPicking();
             }
-            if (Input.keyPressed(Key.LeftArrow))
+            else if (Input.keyPressed(Key.LeftArrow))
             {
                 Player1.selectPreviousItem();
                 soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Next);
             }
-            if (Input.keyPressed(Key.RightArrow))
+            else if (Input.keyPressed(Key.Space))
+            {
+                soundPlayer.playActionSound(SoundPlayer.Actions.Jump);
+            }
+            else if (Input.keyPressed(Key.RightArrow))
             {
                 Player1.selectNextItem();
                 soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Next);
             }
-            if (Input.keyPressed(Key.E))
+            else if (Input.keyPressed(Key.E))
             {
                 if(Player1.SelectedItem.isEquippable())
                 { 
@@ -239,16 +270,17 @@ namespace TGC.Group.Model
                 }
       
             }
-            if (Input.keyPressed(Key.Q))
+            else if (Input.keyPressed(Key.Q))
             {
                 Player1.removeInventoryObject(Player1.SelectedItem);
+                soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Discard);
             }
-            if (Input.keyPressed(Key.Z))
+            else if (Input.keyPressed(Key.Z))
             {
                 Player1.selectForCombination(Player1.SelectedItem);
                 soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Select);
             }
-            if (Input.keyPressed(Key.C))
+            else if (Input.keyPressed(Key.C))
             {
                 if (!InventoryObject.combineObjects(Player1, Player1.combinationSelection))
                 {
@@ -268,8 +300,6 @@ namespace TGC.Group.Model
         /// </summary>
         private void testCollisions()
         {
-            InteractiveObject collisioned = null;
-
             if (Player1.Moving)
             {
                 foreach (InteractiveObject objeto in MyWorld.Objetos)
@@ -281,55 +311,12 @@ namespace TGC.Group.Model
 
                         if (TgcCollisionUtils.testAABBAABB(cameraBox.BoundingBox, objeto.mesh.BoundingBox))
                         {
-                            StatusText.Text = "COLISIONANDO";
-                            //hubo colisión
-                            collisioned = objeto;
-                            //por ahora lo vuelvo a poner donde estaba
-                            //TODO fixear el métod oeste
-                            //MyCamera.updatePosition(MyCamera.PreviousPosition);
-                            //MyCamera.Collisioned = true;
-
-                            var movementRay = MyCamera.PreviousPosition - MyCamera.Position;
-
-                            var rs = Vector3.Empty;
-
-                            if (((cameraBox.BoundingBox.PMax.X > collisioned.mesh.BoundingBox.PMax.X && movementRay.X > 0) ||
-                            (cameraBox.BoundingBox.PMin.X < collisioned.mesh.BoundingBox.PMin.X && movementRay.X < 0)) &&
-                            ((cameraBox.BoundingBox.PMax.Z > collisioned.mesh.BoundingBox.PMax.Z && movementRay.Z > 0) ||
-                            (cameraBox.BoundingBox.PMin.Z < collisioned.mesh.BoundingBox.PMin.Z && movementRay.Z < 0)))
-                            {
-                                if (cameraBox.Position.X > collisioned.mesh.BoundingBox.PMin.X && cameraBox.Position.X < collisioned.mesh.BoundingBox.PMax.X)
-                                {
-                                    //El personaje esta contenido en el bounding X
-
-                                    rs = new Vector3(movementRay.X, movementRay.Y, 0);
-                                }
-                                if (cameraBox.Position.Z > collisioned.mesh.BoundingBox.PMin.Z &&
-                                    cameraBox.Position.Z < collisioned.mesh.BoundingBox.PMax.Z)
-                                {
-                                    //El personaje esta contenido en el bounding Z
-                                    rs = new Vector3(0, movementRay.Y, movementRay.Z);
-                                }
-                            }
-                            else
-                            {
-                                if ((cameraBox.BoundingBox.PMax.X > collisioned.mesh.BoundingBox.PMax.X && movementRay.X > 0) ||
-                                    (cameraBox.BoundingBox.PMin.X < collisioned.mesh.BoundingBox.PMin.X && movementRay.X < 0))
-                                {
-                                    rs = new Vector3(0, movementRay.Y, movementRay.Z);
-                                }
-                                if ((cameraBox.BoundingBox.PMax.Z > collisioned.mesh.BoundingBox.PMax.Z && movementRay.Z > 0) ||
-                                    (cameraBox.BoundingBox.PMin.Z < collisioned.mesh.BoundingBox.PMin.Z && movementRay.Z < 0))
-                                {
-                                    rs = new Vector3(movementRay.X, movementRay.Y, 0);
-                                }
-                            }
-
-                            MyCamera.SetCamera(MyCamera.Position - rs, MyCamera.PreviousLookAt, MyCamera.PreviousUpVector);
+                            collidedObject = objeto;
+                            MyCamera.Collisioned = true;
                             break;
                         }else
                         {
-                            StatusText.Text = "NO COL";
+                            MyCamera.Collisioned = false;
                         }
                     }
                 }
@@ -352,21 +339,24 @@ namespace TGC.Group.Model
                         Vector3 aux = new Vector3(0f, 0f, 0f);
                         aux.Add(Camara.Position);
                         aux.Subtract(objeto.mesh.Position);
-                        if (FastMath.Ceiling(aux.Length()) < 50)
+                        if (FastMath.Ceiling(aux.Length()) < 65)
                         {
-                            collidedObject = objeto;
-                            if (collidedObject.getHit(Player1.getDamage()))
+                            pickedObject = objeto;
+                            if (pickedObject.getHit(Player1.getDamage()))
                             {
-                                DamageText.Text = Player1.getDamage().ToString() + " DMG";
-                                MyWorld.destroyObject(collidedObject);
-                                List<InventoryObject> drops = collidedObject.getDrops();
+                                setCenterText(Player1.getDamage().ToString() + " Damage");
+                                MyWorld.destroyObject(pickedObject);
+
+                                if (pickedObject.Equals(collidedObject)) MyCamera.Collisioned = false;
+
+                                List<InventoryObject> drops = pickedObject.getDrops();
                                 foreach (InventoryObject invObject in drops)
                                 {
                                     //agrego los drops al inventario del usuario
                                     if (!Player1.addInventoryObject(invObject))
                                     {
                                         //no pudo agregar el objeto
-                                        StatusText.Text = "No hay espacio en el inventario...";
+                                        setTopRightText("No hay espacio en el inventario...");
                                     }
                                 }
                             }
@@ -386,7 +376,7 @@ namespace TGC.Group.Model
                 //a darle átomos
                 emit = true;
                 emittedTime = 0;
-                emitter.Position = collidedObject.mesh.Position;
+                emitter.Position = pickedObject.mesh.Position;
             }
         }
 
@@ -469,22 +459,22 @@ namespace TGC.Group.Model
             if(null != Player1.EquippedTool) DrawText.drawText("Objeto equipado: " + Player1.EquippedTool.Type.ToString(), 0, 20, Color.DarkSalmon);
             if (null != Player1.SelectedItem) DrawText.drawText("Objeto seleccionado: (" + Player1.SelectedItemIndex + ")" + Player1.SelectedItem.Type.ToString(), 0, 30, Color.DarkSalmon);
 
-            StatusText.render();
-            DamageText.render();
+            TopRightText.render();
+            CenterText.render();
             MyWorld.render();
             MenuInterface.render();
 
             MyCamera.render();
 
-            if(null != collidedObject)
+            if(null != pickedObject)
             {
                 //un objeto fue objetivo de una acción
-                soundPlayer.playMaterialSound(collidedObject.material);
+                soundPlayer.playMaterialSound(pickedObject.material);
 
-                if (!collidedObject.alive)
+                if (!pickedObject.alive)
                 {
                     //el objeto debe ser eliminado
-                    if(collidedObject.objectType == InteractiveObject.ObjectTypes.Tree)
+                    if(pickedObject.objectType == InteractiveObject.ObjectTypes.Tree)
                     {
                         soundPlayer.playActionSound(SoundPlayer.Actions.TreeFall);
                     }
@@ -512,6 +502,47 @@ namespace TGC.Group.Model
             MyWorld.dispose();
             emitter.dispose();
             MenuInterface.dispose();
+        }
+
+        /// <summary>
+        ///     setea el texto del centro
+        /// </summary>
+        /// <param name="text"></param>
+        private void setCenterText(String text)
+        {
+            timerCenterText = 0;
+            this.CenterText.Text = text;
+        }
+
+        /// <summary>
+        ///     setea el texto de arriba a la derecha
+        /// </summary>
+        /// <param name="text"></param>
+        private void setTopRightText(String text)
+        {
+            timerTopRightText = 0;
+            this.TopRightText.Text = text;
+        }
+
+        /// <summary>
+        ///     chequea tiempos de muestra de los textos
+        /// </summary>
+        private void checkCurrentTexts()
+        {
+            timerCenterText += ElapsedTime;
+            timerTopRightText += ElapsedTime;
+
+            if (timerCenterText > 2)
+            {
+                this.CenterText.Text = "";
+                timerCenterText = 0;
+            }
+
+            if (timerTopRightText > 2)
+            {
+                this.TopRightText.Text = "";
+                timerTopRightText = 0;
+            }
         }
     }
 }
