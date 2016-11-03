@@ -34,7 +34,7 @@ namespace TGC.Group.Model
         //lista de objetos del mapa
         public List<InteractiveObject> Objetos { get; set; }
         //skybox
-        private TgcSkyBox SkyBox;
+        public TgcSkyBox SkyBox { get; set; }
         //piso del mapa
         public TgcPlane Floor { get; set; }
         //mover skybox con cámara?
@@ -156,14 +156,16 @@ namespace TGC.Group.Model
             var floorTexture = TgcTexture.createTexture(Device, MediaDir + "Textures\\tierra.jpg");
             Floor = new TgcPlane(new Vector3(-(MapLength / 2), 0, -(MapLength / 2)), new Vector3(MapLength, 0, MapLength), TgcPlane.Orientations.XZplane, floorTexture, 70f, 70f);
 
+            //las cantidades base se pensaron para un escenario de 2000, por lo que divido la longitud actual por eso y multiplico los valores base
+            int multiplier = MapLength / 2000;
             //creo los árboles
-            CreateTrees(250);
+            CreateTrees(250 * multiplier);
             //creo rocas
-            CreateRocks(100);
+            CreateRocks(100 * multiplier);
             //creo pasto
-            CreateGrass(500);
+            CreateGrass(500 * multiplier);
             //creo otros objetos
-            CreateObjects(10);
+            CreateObjects(10 * multiplier);
         }
 
         /// <summary>
@@ -174,13 +176,7 @@ namespace TGC.Group.Model
             //Crear SkyBox
             SkyBox = new TgcSkyBox();
             SkyBox.Center = new Vector3(0, 0, 0);
-            SkyBox.Size = new Vector3(10000, 10000, 10000);
-
-            //indico si se mueve o no con la cámara
-            MoveSkyBoxWithCamera = false;
-
-            //Configurar color
-            //skyBox.Color = Color.OrangeRed;
+            SkyBox.Size = new Vector3(MapLength * 1f, MapLength * 1f, MapLength * 1f);
 
             var texturesPath = MediaDir + "Textures\\SkyBox\\";
             String imgNameRoot = "clouds";
@@ -190,7 +186,6 @@ namespace TGC.Group.Model
             SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + imgNameRoot + "_dn." + imgExtension);
             SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + imgNameRoot + "_lf." + imgExtension);
             SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + imgNameRoot + "_rt." + imgExtension);
-
             //Hay veces es necesario invertir las texturas Front y Back si se pasa de un sistema RightHanded a uno LeftHanded
             SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + imgNameRoot + "_bk." + imgExtension);
             SkyBox.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + imgNameRoot + "_ft." + imgExtension);

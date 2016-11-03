@@ -82,7 +82,7 @@ namespace TGC.Group.Model
         //Semilla para randoms
         public static int RandomSeed { get; } = 666;
         //Dimensiones de cada cuadrante del mapa
-        public static int MapLength { get; } = 2000;
+        public static int MapLength { get; } = 7000;
 
         private bool gameOver = false;
 
@@ -180,6 +180,8 @@ namespace TGC.Group.Model
 
             MyWorld.update();
             MenuInterface.update();
+
+            MyWorld.SkyBox.Center = new Vector3(Camara.Position.X, MyWorld.SkyBox.Center.Y, Camara.Position.Z);
 
             if (Player1.Alive)
             {

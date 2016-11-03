@@ -137,7 +137,7 @@ namespace TGC.Group.Model
             CategoryPerType.Add(ObjectTypes.Water, Categories.Drink);
             CategoryPerType.Add(ObjectTypes.AlienMeat, Categories.Food);
             CategoryPerType.Add(ObjectTypes.Seed, Categories.Food);
-            CategoryPerType.Add(ObjectTypes.Leaf, Categories.Other);
+            CategoryPerType.Add(ObjectTypes.Leaf, Categories.Food);
             CategoryPerType.Add(ObjectTypes.Rock, Categories.Other);
             CategoryPerType.Add(ObjectTypes.Wood, Categories.Other);
 

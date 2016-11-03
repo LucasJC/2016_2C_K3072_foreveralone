@@ -376,13 +376,19 @@ namespace TGC.Group.Model
             }
             else if (InventoryObject.ObjectTypes.AlienMeat.Equals(obj.Type))
             {   //AlienMeat!
-                this.Hunger = this.Hunger + 5;
+                this.Hunger = this.Hunger + 100;
                 if (this.Hunger > 100) this.Hunger = 100;
+                result = true;
+            }
+            else if (InventoryObject.ObjectTypes.Leaf.Equals(obj.Type))
+            {   //Hoja
+                this.Stamina = this.Stamina + 15;
+                if (this.Stamina > 100) this.Stamina = 100;
                 result = true;
             }
             else if (InventoryObject.ObjectTypes.Water.Equals(obj.Type))
             {   //Agua
-                this.Thirst = this.Thirst + 5;
+                this.Thirst = this.Thirst + 20;
                 if (this.Thirst > 100) this.Thirst = 100;
                 result = true;
             }

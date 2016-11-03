@@ -101,7 +101,7 @@ namespace TGC.Group.Model
                 CustomSprite sprite = null;
                 sprite = new CustomSprite();
                 sprite.Bitmap = new CustomBitmap(mediaDir + "2d\\gui\\weather_" + weather.ToString() + ".png", Device.Device);
-                sprite.Scaling = scaling;
+                sprite.Scaling = new Vector2(0.35f, 0.35f);
 
                 //agrego objetos a la lista
                 WeatherSprites.Add(weather, sprite);
