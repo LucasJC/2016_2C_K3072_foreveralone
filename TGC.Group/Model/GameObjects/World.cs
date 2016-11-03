@@ -21,12 +21,14 @@ namespace TGC.Group.Model
     /// </summary>
     public class World : Renderable
     {
-        public enum Weather { Hot, Cold, Normal }
+        public enum Weather { Hot, Normal, Cold, ExtremeCold }
 
         private String MediaDir;
         private Microsoft.DirectX.Direct3D.Device Device;
         private TgcSceneLoader Loader;
         private TgcCamera Camera;
+
+        public Weather CurrentWeather = Weather.Normal;
 
         public TgcFrustum CameraFrustum { get; set; }
         //lista de objetos del mapa
@@ -135,6 +137,14 @@ namespace TGC.Group.Model
             {
                 this.Objetos.Remove(objeto);
             }
+        }
+
+        public void changeWeather(Player player)
+        {
+            int random = GameUtils.Rand.Next(4);
+
+            CurrentWeather = (Weather) random;
+            player.Weather = CurrentWeather;
         }
 
         /// <summary>

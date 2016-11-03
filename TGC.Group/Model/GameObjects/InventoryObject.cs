@@ -23,8 +23,24 @@ namespace TGC.Group.Model
             Rock,
             Seed,
             Water,
-            Wood
+            Wood,
+            AlienMeat, //ñam
+            WoodArmor
         }
+
+        public enum Categories
+        {
+            Drink,
+            Food,
+            Tool,
+            Armor,
+            Other
+        }
+
+        /// <summary>
+        ///     diccionario que define categorías para cada tipo. En caso de no poseer entrada para un tipo, se asume Other
+        /// </summary>
+        public static Dictionary<ObjectTypes, Categories> CategoryPerType = new Dictionary<ObjectTypes, Categories>();
 
         /// <summary>
         ///     diccionario que dice el daño que produce un tipo de item, si no figura entonces el daño es 1 (default)
@@ -47,7 +63,7 @@ namespace TGC.Group.Model
         private String Name;
 
         /// <summary>
-        ///     tipo del objeto para definir interacciones
+        ///     tipo del objeto para definir interacciones - refiere a qué objeto es
         /// </summary>
         public ObjectTypes Type;
 
@@ -87,12 +103,43 @@ namespace TGC.Group.Model
         }
 
         /// <summary>
+        ///     indica si un objeto es equipable
+        /// </summary>
+        /// <returns></returns>
+        public bool isEquippable()
+        {
+            bool result = false;
+
+            if (CategoryPerType.ContainsKey(this.Type))
+            {
+                Categories category = CategoryPerType[this.Type];
+                if (Categories.Armor.Equals(category) || Categories.Tool.Equals(category))
+                {
+                    result = true;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         ///     inicializo las distintas combinaciones posibles
         /// </summary>
         static InventoryObject()
         {
             //Daño por tipo de objeto
             DamagePerType.Add(ObjectTypes.Axe, 2);
+
+            //Categorías
+            CategoryPerType.Add(ObjectTypes.Axe, Categories.Tool);
+            CategoryPerType.Add(ObjectTypes.WoodArmor, Categories.Armor);
+            CategoryPerType.Add(ObjectTypes.Potion, Categories.Drink);
+            CategoryPerType.Add(ObjectTypes.Water, Categories.Drink);
+            CategoryPerType.Add(ObjectTypes.AlienMeat, Categories.Food);
+            CategoryPerType.Add(ObjectTypes.Seed, Categories.Food);
+            CategoryPerType.Add(ObjectTypes.Leaf, Categories.Other);
+            CategoryPerType.Add(ObjectTypes.Rock, Categories.Other);
+            CategoryPerType.Add(ObjectTypes.Wood, Categories.Other);
 
             //Combinaciones
             InventoryObject.ObjectCombinations = new List<ObjectCombination>();
@@ -103,13 +150,17 @@ namespace TGC.Group.Model
             axe.materials.Add(ObjectTypes.Rock, 1);
             InventoryObject.ObjectCombinations.Add(axe);
 
+            //Defino la armadura de madera
+            ObjectCombination armor = new ObjectCombination(InventoryObject.ObjectTypes.WoodArmor);
+            armor.materials.Add(ObjectTypes.Wood, 4);
+            armor.materials.Add(ObjectTypes.Leaf, 2);
+            InventoryObject.ObjectCombinations.Add(armor);
+
             //Defino la poción
             ObjectCombination potion = new ObjectCombination(InventoryObject.ObjectTypes.Potion);
             potion.materials.Add(ObjectTypes.Seed, 2);
             potion.materials.Add(ObjectTypes.Water, 1);
             InventoryObject.ObjectCombinations.Add(potion);
-
-            //TODO definir más combinaciones!
         }
 
         public static bool combineObjects(Player player, List<InventoryObject> materialsUsed)

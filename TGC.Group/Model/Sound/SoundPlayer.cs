@@ -23,6 +23,8 @@ namespace TGC.Group.Model
 
         private String SoundsPath;
 
+        private TgcMp3Player mp3Player;
+
         /// <summary>
         ///     constructor principal
         /// </summary>
@@ -30,6 +32,9 @@ namespace TGC.Group.Model
         /// <param name="mediaDir"></param>
         public SoundPlayer(TgcDirectSound directSound, String mediaDir)
         {
+
+            mp3Player = new TgcMp3Player();
+
             SoundsPath = mediaDir + "Sounds\\";
             //inicializo sonidos
 
@@ -91,6 +96,24 @@ namespace TGC.Group.Model
             EnvironmentSounds = new Dictionary<EnvironmentConditions, TgcStaticSound>();
             EnvironmentSounds.Add(EnvironmentConditions.Rain, rainSound);
             EnvironmentSounds.Add(EnvironmentConditions.Wind, windSound);
+
+            mp3Player.FileName = SoundsPath + "Environment\\ambient.mp3";
+        }
+
+        /// <summary>
+        ///     inicia reproducción de sonido ambiente en loop
+        /// </summary>
+        public void startAmbient()
+        {
+            mp3Player.play(true);
+        }
+
+        /// <summary>
+        ///     frena reproducción de sonido ambiente
+        /// </summary>
+        public void stopAmbient()
+        {
+            mp3Player.stop();
         }
 
         /// <summary>

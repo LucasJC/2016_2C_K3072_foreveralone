@@ -143,7 +143,7 @@ namespace TGC.Group.Model
                     itemSelectionSprite.Position = sprite.Position;
                     drawer.DrawSprite(itemSelectionSprite);
                 }
-                if(element.Value == Player1.EquippedObject)
+                if(element.Value == Player1.EquippedTool || element.Value == Player1.EquippedArmor)
                 {
                     itemEquippedSprite.Position = sprite.Position;
                     drawer.DrawSprite(itemEquippedSprite);

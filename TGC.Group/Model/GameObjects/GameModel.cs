@@ -120,8 +120,7 @@ namespace TGC.Group.Model
 
             //inicializo mesh para hacha
             TgcMesh axe = loader.loadSceneFromFile(MediaDir + "Meshes\\Hacha\\Hacha-TgcScene.xml").Meshes[0];
-            //axe.Scale = new Vector3(0.1f, 0.1f, 0.1f);
-            axe.Scale = new Vector3(1f, 1f, 1f);
+            axe.Scale = new Vector3(0.1f, 0.1f, 0.1f);
 
             //Inicializo cámara
             MyCamera = new TgcFpsCamera(Player1, axe, Input, (MapLength / 2), -(MapLength / 2), (MapLength / 2), -(MapLength / 2));
@@ -146,7 +145,7 @@ namespace TGC.Group.Model
             pickingRay = new TgcPickingRay(Input);
             //sonidos
             soundPlayer = new SoundPlayer(DirectSound, MediaDir);
-
+            soundPlayer.startAmbient();
             //gui
             MenuInterface = new GUI(MediaDir, D3DDevice.Instance, Player1, this);
 
@@ -170,8 +169,9 @@ namespace TGC.Group.Model
 
             //controlo tiempo
             time += ElapsedTime;
-
             updateDayTime(ElapsedTime);
+
+            checkTimeEvents();
 
             //reinicio estado de colisiones
             collided = false;
@@ -221,8 +221,23 @@ namespace TGC.Group.Model
             }
             if (Input.keyPressed(Key.E))
             {
-                Player1.equipSelectedItem();
-                soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Select);
+                if(Player1.SelectedItem.isEquippable())
+                { 
+                    soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Select);
+                    Player1.equipSelectedItem();
+                }
+                else
+                {
+                    //intento consumir el item ya que no era equipable
+                    if (Player1.consumeItem())
+                    {
+                        soundPlayer.playActionSound(SoundPlayer.Actions.Drink);
+                    }else
+                    {
+                        soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Wrong);
+                    }
+                }
+      
             }
             if (Input.keyPressed(Key.Q))
             {
@@ -413,7 +428,25 @@ namespace TGC.Group.Model
                     }
                 }
             }
-            
+        }
+
+        /// <summary>
+        ///     Método que verifica los eventos temporales como cambio de clima, etc
+        /// </summary>
+        private void checkTimeEvents()
+        {
+            if (this.Seconds == 0 && this.Minute % 30 == 00)
+            {
+                //cada 30 min el jugador sufre efectos del clima
+                if (Player1.Hunger <= 0) Player1.beHit(2);
+                Player1.sufferWeather(MyWorld.CurrentWeather);
+            }
+
+            if (this.Seconds == 0 && this.Minute == 0 && this.Hour % 4 == 0)
+            {
+                //cada 12 horas cambio el clima aleatoriamente
+                MyWorld.changeWeather(Player1);
+            }
         }
 
         /// <summary>
@@ -433,7 +466,7 @@ namespace TGC.Group.Model
             lightEffect.SetValue("time", time);
 
             //Dibuja un texto por pantalla
-            if(null != Player1.EquippedObject) DrawText.drawText("Objeto equipado: " + Player1.EquippedObject.Type.ToString(), 0, 20, Color.DarkSalmon);
+            if(null != Player1.EquippedTool) DrawText.drawText("Objeto equipado: " + Player1.EquippedTool.Type.ToString(), 0, 20, Color.DarkSalmon);
             if (null != Player1.SelectedItem) DrawText.drawText("Objeto seleccionado: (" + Player1.SelectedItemIndex + ")" + Player1.SelectedItem.Type.ToString(), 0, 30, Color.DarkSalmon);
 
             StatusText.render();
@@ -475,6 +508,7 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Dispose()
         {
+            soundPlayer.stopAmbient();
             MyWorld.dispose();
             emitter.dispose();
             MenuInterface.dispose();

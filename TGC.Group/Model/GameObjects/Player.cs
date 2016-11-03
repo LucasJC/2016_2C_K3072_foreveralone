@@ -37,6 +37,8 @@ namespace TGC.Group.Model
         /// </summary>
         public int Hunger { get; set; } = 100;
 
+        public int Stamina { get; set; } = 100;
+
         /// <summary>
         ///     elementos del inventario
         /// </summary>
@@ -70,9 +72,13 @@ namespace TGC.Group.Model
         public bool Alive { get; set; } = true;
 
         /// <summary>
-        ///     objeto actualmente equipado, define los puntos de daño que realiza el usuario
+        ///     herramienta actualmente equipada, define los puntos de daño que realiza el usuario
         /// </summary>
-        public InventoryObject EquippedObject;
+        public InventoryObject EquippedTool;
+        /// <summary>
+        ///     armadura equipada, define los puntos de defensa del usuario y si sufre daño por frío extremo
+        /// </summary>
+        public InventoryObject EquippedArmor;
 
         /// <summary>
         ///     indica si el usuario se está moviendo
@@ -118,9 +124,9 @@ namespace TGC.Group.Model
             if(null != objectToRemove)
             {
                 this.Inventory.Remove(objectToRemove.InventoryIndex);
-                if (EquippedObject == objectToRemove)
+                if (EquippedTool == objectToRemove)
                 {
-                    EquippedObject = null;
+                    EquippedTool = null;
                 }
                 if (SelectedItem == objectToRemove)
                 {
@@ -177,9 +183,9 @@ namespace TGC.Group.Model
         {
             //default damage
             int damage = 1;
-            if(null != this.EquippedObject)
+            if(null != this.EquippedTool)
             {
-                damage = this.EquippedObject.Damage;
+                damage = this.EquippedTool.Damage;
             }
             return damage;
         }
@@ -252,13 +258,32 @@ namespace TGC.Group.Model
         {
             if(null != SelectedItem)
             {
-                if (EquippedObject == SelectedItem)
+
+                InventoryObject.Categories category = InventoryObject.CategoryPerType[SelectedItem.Type];
+
+                if (InventoryObject.Categories.Armor.Equals(category))
                 {
-                    EquippedObject = null;
+                    //es armadura
+                    if (EquippedArmor == SelectedItem)
+                    {
+                        EquippedArmor = null;
+                    }
+                    else
+                    {
+                        EquippedArmor = SelectedItem;
+                    }
                 }
-                else
+                else if (InventoryObject.Categories.Tool.Equals(category))
                 {
-                    EquippedObject = SelectedItem;
+                    //es una herramienta / arma
+                    if (EquippedTool == SelectedItem)
+                    {
+                        EquippedTool = null;
+                    }
+                    else
+                    {
+                        EquippedTool = SelectedItem;
+                    }
                 }
             }
         }
@@ -280,6 +305,75 @@ namespace TGC.Group.Model
                     break;
                 }
             }
+
+            return result;
+        }
+
+        /// <summary>
+        ///     el jugador sufre los efectos del clima
+        /// </summary>
+        /// <param name="weather"></param>
+        public void sufferWeather(World.Weather weather)
+        {
+
+            if(World.Weather.Hot.Equals(weather))
+            {
+                //hace calor
+                if (this.Thirst > 0) this.Thirst--;
+                if (this.Stamina > 0) this.Stamina--;
+
+            }else if (World.Weather.Cold.Equals(weather))
+            {
+                //hace frío
+                if (this.Hunger > 0) this.Hunger--;
+            }
+            else if (World.Weather.ExtremeCold.Equals(weather))
+            {
+                //hace muucho frío
+                if (this.Hunger > 0) this.Hunger--;
+                if (null == this.EquippedArmor) this.beHit(2);
+            }
+            else if (World.Weather.Normal.Equals(weather))
+            {
+                if(this.Stamina < 100) this.Stamina++;
+            }
+        }
+
+        /// <summary>
+        ///     intenta consumir el objeto seleccionado. Retorna true si se consumió
+        /// </summary>
+        public bool consumeItem()
+        {
+            bool result = false;
+            InventoryObject obj = this.SelectedItem;
+
+            if (InventoryObject.ObjectTypes.Seed.Equals(obj.Type))
+            {   //Seed
+                this.Hunger = this.Hunger + 5;
+                if (this.Hunger > 100) this.Hunger = 100;
+                result = true;
+            }
+            else if (InventoryObject.ObjectTypes.AlienMeat.Equals(obj.Type))
+            {   //AlienMeat!
+                this.Hunger = this.Hunger + 5;
+                if (this.Hunger > 100) this.Hunger = 100;
+                result = true;
+            }
+            else if (InventoryObject.ObjectTypes.Water.Equals(obj.Type))
+            {   //Agua
+                this.Thirst = this.Thirst + 5;
+                if (this.Thirst > 100) this.Thirst = 100;
+                result = true;
+            }
+            else if (InventoryObject.ObjectTypes.Potion.Equals(obj.Type))
+            {   //Poción
+                this.Thirst = this.Thirst + 50;
+                if (this.Thirst > 100) this.Thirst = 100;
+                this.LifePoints = 100;
+                result = true;
+            }
+
+            if (result) this.removeInventoryObject(obj);
 
             return result;
         }

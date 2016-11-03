@@ -62,6 +62,7 @@ namespace TGC.Examples.Camara
         public Vector3 PreviousUpVector { get; set; }
         public bool Collisioned { get; set; } = false;
         public TgcBox CameraBox { get; set; } = TgcBox.fromExtremes(new Vector3(0, 0, 0), new Vector3(5, 5, 5));
+        public Key LastMovementKey;
 
         private TgcMesh axe;
 
@@ -149,7 +150,7 @@ namespace TGC.Examples.Camara
         private float timeStuck = 0;
         public override void UpdateCamera(float elapsedTime)
         {
-
+            /*
             if(Collisioned)
             {
                 //si está colisionando acumulo tiempo de stuck para destrabarlo si es necesario
@@ -165,6 +166,7 @@ namespace TGC.Examples.Camara
             {
                 timeStuck = 0;
             }
+            */
             //guardo pos anterior
             this.PreviousPosition = this.Position;
             this.PreviousLookAt = this.LookAt;
@@ -186,29 +188,60 @@ namespace TGC.Examples.Camara
             //Forward
             if (Input.keyDown(Key.W))
             {
-                moveVector += new Vector3(0, 0, -1) * MovementSpeed;
-                player1.Moving = true;
+                if(Collisioned && LastMovementKey == Key.W)
+                {
+                    //no se puede mover en esta dirección
+                }else
+                {
+                    moveVector += new Vector3(0, 0, -1) * MovementSpeed;
+                    player1.Moving = true;
+                    LastMovementKey = Key.W;
+                }
             }
 
             //Backward
             if (Input.keyDown(Key.S))
             {
-                moveVector += new Vector3(0, 0, 1) * MovementSpeed;
-                player1.Moving = true;
+                if (Collisioned && LastMovementKey == Key.S)
+                {
+                    //no se puede mover en esta dirección
+                }
+                else
+                {
+                    moveVector += new Vector3(0, 0, 1) * MovementSpeed;
+                    player1.Moving = true;
+                    LastMovementKey = Key.S;
+                }   
             }
 
             //Strafe right
             if (Input.keyDown(Key.D))
             {
-                moveVector += new Vector3(-1, 0, 0) * MovementSpeed;
-                player1.Moving = true;
+                if (Collisioned && LastMovementKey == Key.D)
+                {
+                    //no se puede mover en esta dirección
+                }
+                else
+                {
+                    moveVector += new Vector3(-1, 0, 0) * MovementSpeed;
+                    player1.Moving = true;
+                    LastMovementKey = Key.D;
+                }  
             }
 
             //Strafe left
             if (Input.keyDown(Key.A))
             {
-                moveVector += new Vector3(1, 0, 0) * MovementSpeed;
-                player1.Moving = true;
+                if (Collisioned && LastMovementKey == Key.A)
+                {
+                    //no se puede mover en esta dirección
+                }
+                else
+                {
+                    moveVector += new Vector3(1, 0, 0) * MovementSpeed;
+                    player1.Moving = true;
+                    LastMovementKey = Key.A;
+                }   
             }
 
             //Jump
@@ -280,8 +313,10 @@ namespace TGC.Examples.Camara
 
             base.SetCamera(positionEye, cameraFinalTarget, cameraRotatedUpVector);
 
-            axe.Position = new Vector3(this.Position.X + 5, this.Position.Y - 20, this.Position.Z) + (10 * (cameraFinalTarget - positionEye));
-            axe.Transform = Matrix.Translation(axe.Position) * Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot) * Matrix.Scaling(axe.Scale);
+            //axe.Position = new Vector3(this.Position.X + 5, this.Position.Y - 20, this.Position.Z) + (10 * (cameraFinalTarget - positionEye));
+            //axe.Transform = Matrix.Translation(axe.Position) * Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot) * Matrix.Scaling(axe.Scale);
+            axe.Position = new Vector3(positionEye.X + 2, positionEye.Y - 2, positionEye.Z);
+            axe.Transform = Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot) * Matrix.Translation(axe.Position) * Matrix.Scaling(axe.Scale);
         }
 
         /// <summary>
