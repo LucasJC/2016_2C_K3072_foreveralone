@@ -90,6 +90,11 @@ namespace TGC.Group.Model
         /// </summary>
         public bool Moving { set; get; }
 
+        /// <summary>
+        ///     referencia al modelo
+        /// </summary>
+        public GameModel gameModel { get; set; }
+
         public Player()
         {
         }
@@ -171,6 +176,7 @@ namespace TGC.Group.Model
         /// <returns></returns>
         public int beHit(int hitPoints)
         {
+            int previousLifePoints = this.LifePoints;
             this.LifePoints -= hitPoints;
             this.Hurt = true;
             if(this.LifePoints < 0)
@@ -179,6 +185,8 @@ namespace TGC.Group.Model
             }
 
             if (this.LifePoints == 0) this.Alive = false;
+
+            gameModel.setCenterText((previousLifePoints - this.LifePoints) + " puntos de daño recibido");
 
             return this.LifePoints;
         }

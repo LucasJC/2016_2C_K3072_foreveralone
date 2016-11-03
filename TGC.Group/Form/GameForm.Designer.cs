@@ -33,6 +33,7 @@
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
+            this.textBox2 = new System.Windows.Forms.TextBox();
             this.panel3D.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -40,6 +41,7 @@
             // 
             this.panel3D.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("panel3D.BackgroundImage")));
             this.panel3D.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.panel3D.Controls.Add(this.textBox2);
             this.panel3D.Controls.Add(this.textBox1);
             this.panel3D.Controls.Add(this.button2);
             this.panel3D.Controls.Add(this.button1);
@@ -54,7 +56,7 @@
             this.textBox1.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             this.textBox1.Enabled = false;
             this.textBox1.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBox1.Location = new System.Drawing.Point(12, 199);
+            this.textBox1.Location = new System.Drawing.Point(27, 365);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
@@ -87,6 +89,21 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // textBox2
+            // 
+            this.textBox2.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.textBox2.Enabled = false;
+            this.textBox2.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.textBox2.ForeColor = System.Drawing.Color.Black;
+            this.textBox2.Location = new System.Drawing.Point(311, 365);
+            this.textBox2.Multiline = true;
+            this.textBox2.Name = "textBox2";
+            this.textBox2.ReadOnly = true;
+            this.textBox2.Size = new System.Drawing.Size(445, 276);
+            this.textBox2.TabIndex = 3;
+            this.textBox2.Text = resources.GetString("textBox2.Text");
+            this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
+            // 
             // GameForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -111,6 +128,7 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox textBox2;
     }
 }
 

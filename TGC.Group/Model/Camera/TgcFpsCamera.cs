@@ -58,7 +58,7 @@ namespace TGC.Examples.Camara
         public float Gravity { get; set; }
         public float MouseRotationSpeed { get; set; }
         public float JumpSpeed { get; set; }
-
+        private float runningTime = 0;
         //para colisiones
         public Vector3 PreviousPosition { get; set; }
         public Vector3 PreviousLookAt { get; set; }
@@ -165,6 +165,16 @@ namespace TGC.Examples.Camara
                 if (player1.Stamina > 0 && Input.keyDown(Key.LeftShift))
                 {
                     this.MovementSpeed = RunningSpeed;
+
+                    if (player1.Moving)
+                    {
+                        runningTime += elapsedTime;
+                        if (runningTime >= 0.2)
+                        {
+                            player1.Stamina--;
+                            runningTime = 0;
+                        }
+                    }
                 }
                 else
                 {
@@ -332,7 +342,7 @@ namespace TGC.Examples.Camara
 
         public void render()
         {
-            axe.render();
+            if(null != player1.EquippedTool) axe.render();
         }
     }
 }

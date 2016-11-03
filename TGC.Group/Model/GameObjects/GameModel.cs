@@ -118,7 +118,7 @@ namespace TGC.Group.Model
 
             //creo usuario
             Player1 = new Player();
-
+            Player1.gameModel = this;
             //genero el mundo
             MyWorld = new World(MediaDir, d3dDevice, loader, Camara, Frustum, MapLength, true);
 
@@ -356,7 +356,7 @@ namespace TGC.Group.Model
                                     if (!Player1.addInventoryObject(invObject))
                                     {
                                         //no pudo agregar el objeto
-                                        setTopRightText("No hay espacio en el inventario...");
+                                        setTopRightText("No hay espacio en el inventario");
                                     }
                                 }
                             }
@@ -455,10 +455,6 @@ namespace TGC.Group.Model
             //Variables para el shader
             lightEffect.SetValue("time", time);
 
-            //Dibuja un texto por pantalla
-            if(null != Player1.EquippedTool) DrawText.drawText("Objeto equipado: " + Player1.EquippedTool.Type.ToString(), 0, 20, Color.DarkSalmon);
-            if (null != Player1.SelectedItem) DrawText.drawText("Objeto seleccionado: (" + Player1.SelectedItemIndex + ")" + Player1.SelectedItem.Type.ToString(), 0, 30, Color.DarkSalmon);
-
             TopRightText.render();
             CenterText.render();
             MyWorld.render();
@@ -508,7 +504,7 @@ namespace TGC.Group.Model
         ///     setea el texto del centro
         /// </summary>
         /// <param name="text"></param>
-        private void setCenterText(String text)
+        public void setCenterText(String text)
         {
             timerCenterText = 0;
             this.CenterText.Text = text;

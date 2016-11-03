@@ -121,7 +121,7 @@
   <data name="panel3D.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAABkcAAANXCAYAAACPO4haAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAACw8AAAsPAZL5A6UAAAAGYktHRAD/AP8A/6C9p5MAAAAHdElNRQfgCg0FECr1+Ggy
+        YQUAAAAJcEhZcwAACw4AAAsOAUC+4UEAAAAGYktHRAD/AP8A/6C9p5MAAAAHdElNRQfgCg0FECr1+Ggy
         AAAAHWlUWHRDb21tZW50AAAAAABDcmVhdGVkIHdpdGggR0lNUGQuZQcAAP9XSURBVHhe7P2H221XdZ4P
         509JbEwHYTBg44od23QQ1RT3BIyJW2InYBvjjgu4YOO4EZfgxPniHudnm96LqKIIhArqEhLqOpKQIOub
         o835jDHHXGvt8p7znnO2rmtee+/V93qL3jPv/Tz3v/pXh/8Od+BwBw534HAHDnfgcAcOd+BwBw534HAH
@@ -38454,6 +38454,18 @@
         BAwBQ8AQMAQMAUPAEDAEDAFDwBAwBAwBQ8AQMAQMAUPAEDAEDAFDwBAwBAwBQ8AQMAQMAUPAEDAEDAFD
         wBAwBAwBQ8AQMAQMAUPAEDAEDAFDwBAwBAwBQ8AQMAQMAUPAEDAEDAFDwBAwBAwBQ8AQMAQMAUPAEDAE
         DAFDwBAwBAwBQ8AQMAQMAUPAEDAEDIH/IwL/Bc/Mf+M/fEu0AAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="textBox2.Text" xml:space="preserve">
+    <value>El objetivo de este juego es sobrevivir el mayor tiempo posible.
+
+El clima afecta el estado del jugador:
+-Clima normal: Se recupera stamina (necesaria para correr)
+-Clima cálido: Aumenta la sed del jugador y disminuye la estamina.
+-Clima frío: Aumenta el hambre del jugador.
+-Clima de frío extremo: Aumenta el hambre del jugador y le hace daño a menos que tenga una armadura equipada.
+
+Los distintos objetos que se encuentran en el escenario pueden ser combinados para formar nuevos como herramientas, armaduras, consumibles, etc.
 </value>
   </data>
   <data name="textBox1.Text" xml:space="preserve">

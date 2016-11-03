@@ -32,7 +32,6 @@ namespace TGC.Group.Model
         /// <param name="mediaDir"></param>
         public SoundPlayer(TgcDirectSound directSound, String mediaDir)
         {
-
             mp3Player = new TgcMp3Player();
 
             SoundsPath = mediaDir + "Sounds\\";

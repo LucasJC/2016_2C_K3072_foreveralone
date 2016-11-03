@@ -218,7 +218,9 @@ namespace TGC.Group.Form
             this.button1.Visible = false;
             this.button2.Visible = false;
             this.textBox1.Visible = false;
+            this.textBox2.Visible = false;
             this.panel3D.Visible = true;
+            
             iniciarJuego();
         }
 
@@ -238,6 +240,11 @@ namespace TGC.Group.Form
         }
 
         private void textBox1_TextChanged_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
         {
 
         }

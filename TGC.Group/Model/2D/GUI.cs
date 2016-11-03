@@ -148,7 +148,7 @@ namespace TGC.Group.Model
             foreach (World.Weather weather in Enum.GetValues(typeof(World.Weather)))
             {
                 CustomSprite sprite = WeatherSprites[weather];
-                sprite.Position = new Vector2(Device.Width - sprite.Bitmap.Width / 3, staminaBarSprite.Position.Y - (sprite.Bitmap.Height * 1.05f));
+                sprite.Position = new Vector2(Device.Width - sprite.Bitmap.Width / 2.5f, staminaBarSprite.Position.Y - (sprite.Bitmap.Height));
             }
 
         }

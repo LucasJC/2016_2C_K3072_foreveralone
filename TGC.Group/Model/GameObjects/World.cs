@@ -163,7 +163,7 @@ namespace TGC.Group.Model
             //creo pasto
             CreateGrass(500);
             //creo otros objetos
-            CreateObjects();
+            CreateObjects(10);
         }
 
         /// <summary>
@@ -199,19 +199,28 @@ namespace TGC.Group.Model
             SkyBox.Init();
         }
         // TODO modificar, por ahora es de ejemplo
-        private void CreateObjects()
+        private void CreateObjects(int cantidad)
         {
+
             TgcMesh teapotMesh = Loader.loadSceneFromFile(MediaDir + "Meshes\\Teapot\\Teapot-TgcScene.xml").Meshes[0];
             teapotMesh.Scale = new Vector3(0.5f, 0.5f, 0.5f);
-            //teapotMesh.Position = new Vector3(0, teapotMesh.BoundingBox.PMax.Y * 0.75f, 0);
-            teapotMesh.Position = GameUtils.getRandomPositionVector();
-            teapotMesh.Transform = Matrix.Scaling(teapotMesh.Scale) * Matrix.Translation(teapotMesh.Position);
-            teapotMesh.updateBoundingBox();
+
             if (null == Objetos) Objetos = new List<InteractiveObject>();
-            InteractiveObject interactiveObject = new InteractiveObject("teapot", 2, teapotMesh, InteractiveObject.Materials.Glass, InteractiveObject.ObjectTypes.Misc);
-            interactiveObject.drops.Add(InventoryObject.ObjectTypes.Water);
-            interactiveObject.drops.Add(InventoryObject.ObjectTypes.Water);
-            Objetos.Add(interactiveObject);
+
+            TgcMesh instance;
+
+            for (int i = 1; i <= cantidad; i++)
+            {
+                instance = teapotMesh.createMeshInstance(teapotMesh.Name + "_" + i);
+                //instance.Scale = GameUtils.getRandomScaleVector();
+                instance.Position = GameUtils.getRandomPositionVector();
+                instance.Transform = Matrix.Scaling(instance.Scale) * Matrix.Translation(instance.Position);
+                instance.updateBoundingBox();
+                InteractiveObject interactiveObject = new InteractiveObject("Teapot", 3, instance, InteractiveObject.Materials.Glass, InteractiveObject.ObjectTypes.Misc);
+                interactiveObject.drops.Add(InventoryObject.ObjectTypes.Water);
+                interactiveObject.drops.Add(InventoryObject.ObjectTypes.Water);
+                Objetos.Add(interactiveObject);
+            }
         }
 
         /// <summary>
