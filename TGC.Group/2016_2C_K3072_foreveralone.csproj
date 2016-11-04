@@ -92,6 +92,7 @@
     <Compile Include="Model\2D\CustomBitmap.cs" />
     <Compile Include="Model\2D\Drawer2D.cs" />
     <Compile Include="Model\2D\GUISprite.cs" />
+    <Compile Include="Model\Effects\EffectsManager.cs" />
     <Compile Include="Model\GameObjects\GameModel.cs" />
     <Compile Include="Model\Optimization\Octree.cs" />
     <Compile Include="Model\Optimization\OctreeBuilder.cs" />
@@ -155,9 +156,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Shaders\TgcSkeletalMeshShader.fx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Shaders\Varios.fx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />

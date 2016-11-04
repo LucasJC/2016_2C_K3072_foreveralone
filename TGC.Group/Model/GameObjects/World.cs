@@ -43,8 +43,6 @@ namespace TGC.Group.Model
         public int MapLength { get; set; }
         //octree para optimizaciones
         private Octree octree = new Octree();
-        //effects
-        public Effect lightEffect { get; set; } = null;
 
         /// <summary>
         /// 
@@ -110,23 +108,6 @@ namespace TGC.Group.Model
             }
         }
 
-        public void updateEffects()
-        {
-            if(null != this.lightEffect)
-            {
-                String effectTechnique = "RenderScene";
-
-                foreach (InteractiveObject objeto in Objetos)
-                {
-                    objeto.mesh.Effect = lightEffect;
-                    objeto.mesh.Technique = effectTechnique;
-                }
-
-                this.Floor.Effect = lightEffect;
-                this.Floor.Technique = effectTechnique;
-            }
-        }
-
         /// <summary>
         ///     elimina un objeto del mundo
         /// </summary>
@@ -152,12 +133,13 @@ namespace TGC.Group.Model
         /// </summary>
         private void CreateMap()
         {
-            //armo el piso con un plano
-            var floorTexture = TgcTexture.createTexture(Device, MediaDir + "Textures\\tierra.jpg");
-            Floor = new TgcPlane(new Vector3(-(MapLength / 2), 0, -(MapLength / 2)), new Vector3(MapLength, 0, MapLength), TgcPlane.Orientations.XZplane, floorTexture, 70f, 70f);
-
             //las cantidades base se pensaron para un escenario de 2000, por lo que divido la longitud actual por eso y multiplico los valores base
             int multiplier = MapLength / 2000;
+
+            //armo el piso con un plano
+            var floorTexture = TgcTexture.createTexture(Device, MediaDir + "Textures\\tierra.jpg");
+            Floor = new TgcPlane(new Vector3(-(MapLength / 2), 0, -(MapLength / 2)), new Vector3(MapLength, 0, MapLength), TgcPlane.Orientations.XZplane, floorTexture, 70f * multiplier, 70f * multiplier);
+
             //creo los árboles
             CreateTrees(250 * multiplier);
             //creo rocas

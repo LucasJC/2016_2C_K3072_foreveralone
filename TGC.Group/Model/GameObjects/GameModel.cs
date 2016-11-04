@@ -17,6 +17,7 @@ using TGC.Core.Text;
 using TGC.Core.Textures;
 using TGC.Core.Utils;
 using TGC.Examples.Camara;
+using TGC.Group.Model.Effects;
 
 namespace TGC.Group.Model
 {
@@ -52,14 +53,14 @@ namespace TGC.Group.Model
         //cámara
         public TgcFpsCamera MyCamera;
 
+        //manager de efectos
+        public EffectsManager effectsManager { get; set; }
+
         //reproductor de sonidos
         private SoundPlayer soundPlayer;
 
         //gui
         private GUI MenuInterface;
-
-        //shaders
-        private Microsoft.DirectX.Direct3D.Effect lightEffect;
 
         //emisor de partículas
         private ParticleEmitter emitter;
@@ -110,9 +111,7 @@ namespace TGC.Group.Model
         {
             //Device de DirectX para crear primitivas.
             d3dDevice = D3DDevice.Instance.Device;
-            //Shaders
-            lightEffect = TgcShaders.loadEffect(ShadersDir + "CustomLightShader.fx");
-
+            
             //Instancio el loader del framework
             loader = new TgcSceneLoader();
 
@@ -122,6 +121,8 @@ namespace TGC.Group.Model
             //genero el mundo
             MyWorld = new World(MediaDir, d3dDevice, loader, Camara, Frustum, MapLength, true);
 
+            //inicializo efectos
+            effectsManager = new EffectsManager(ShadersDir, this, MyWorld, ElapsedTime);
             //inicializo mesh para hacha
             TgcMesh axe = loader.loadSceneFromFile(MediaDir + "Meshes\\Hacha\\Hacha-TgcScene.xml").Meshes[0];
             axe.Scale = new Vector3(0.1f, 0.1f, 0.1f);
@@ -141,9 +142,6 @@ namespace TGC.Group.Model
             emitter.CreationFrecuency = 1f;
             emitter.Dispersion = 25;
             emitter.Speed = new Vector3(5f, 5f, 5f);
-
-            //MyWorld.lightEffect = lightEffect;
-            //MyWorld.updateEffects();
 
             //colisiones
             pickingRay = new TgcPickingRay(Input);
@@ -171,6 +169,8 @@ namespace TGC.Group.Model
         {
             PreUpdate();
 
+            effectsManager.update();
+
             //si el jugador fue herido entonces reproduzco sonido de dolor
             if(Player1.Hurt)
             {
@@ -186,7 +186,6 @@ namespace TGC.Group.Model
             if (Player1.Alive)
             {
                 //controlo tiempo
-                time += ElapsedTime;
                 updateDayTime(ElapsedTime);
 
                 checkTimeEvents();
@@ -453,9 +452,6 @@ namespace TGC.Group.Model
             //habilito efecto de partículas
             D3DDevice.Instance.ParticlesEnabled = true;
             D3DDevice.Instance.EnableParticles();
-
-            //Variables para el shader
-            lightEffect.SetValue("time", time);
 
             TopRightText.render();
             CenterText.render();
