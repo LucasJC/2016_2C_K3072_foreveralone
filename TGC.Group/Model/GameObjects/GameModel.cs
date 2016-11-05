@@ -29,15 +29,15 @@ namespace TGC.Group.Model
         //tiempo
         private float time = 0;
 
-        public enum DayCycle {DAY, NIGHT};
+        public enum DayCycle { DAY, NIGHT };
 
         //hora del día para controlar ciclos de día y noche
-        public int Day { get; set; }
-        public int Hour { get; set; }
-        public int Minute { get; set; }
-        public int Seconds { get; set; }
+        public int Day { get; set; } = 0;
+        public int Hour { get; set; } = 0;
+        public int Minute { get; set; } = 0;
+        public int Seconds { get; set; } = 0;
         public DayCycle Cycle { get; set; }
-        private float secondsAuxCounter;
+        private float secondsAuxCounter = 0;
 
         //Directx device
         Microsoft.DirectX.Direct3D.Device d3dDevice;
@@ -391,6 +391,8 @@ namespace TGC.Group.Model
 
             Seconds += (int)secondsAuxCounter;
             secondsAuxCounter = 0;
+
+            if (Seconds < 0) Seconds = 0;
 
             if (Seconds >= 60)
             {
