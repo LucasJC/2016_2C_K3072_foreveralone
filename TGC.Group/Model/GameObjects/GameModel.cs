@@ -429,7 +429,7 @@ namespace TGC.Group.Model
         private void checkTimeEvents()
         {
 
-            if (this.Seconds > 0 && this.Seconds % 2 == 0)
+            if (this.Seconds > 0 && this.Seconds % 4 == 0)
             {
                 MyWorld.changeWind();
             }

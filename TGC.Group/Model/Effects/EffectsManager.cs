@@ -15,7 +15,10 @@ namespace TGC.Group.Model.Effects
 {
     public class EffectsManager : Renderable
     {
-        private Effect effect;
+        private Effect mainEffect;
+        private Effect grassEffect;
+        private Effect treeEffect;
+
         private String ShadersDir;
         private World MyWorld;
         private GameModel MyGameModel;
@@ -32,43 +35,43 @@ namespace TGC.Group.Model.Effects
             
             skyBoxColor = MyWorld.SkyBox.Color;
 
-            effect = TgcShaders.loadEffect(ShadersDir + "BasicShader.fx");
-            effect.SetValue("matView", gameModel.d3dDevice.Transform.View);
-            effect.SetValue("matProjection", gameModel.d3dDevice.Transform.Projection);
+            mainEffect = TgcShaders.loadEffect(ShadersDir + "BasicShader.fx");
+            mainEffect.SetValue("matView", gameModel.d3dDevice.Transform.View);
+            mainEffect.SetValue("matProjection", gameModel.d3dDevice.Transform.Projection);
+
+            grassEffect = mainEffect.Clone(MyGameModel.d3dDevice);
+            grassEffect.SetValue("bendFactor", 0.008f);
+
+            treeEffect = mainEffect.Clone(MyGameModel.d3dDevice);
+            treeEffect.SetValue("bendFactor", 0.002f);
 
             foreach (InteractiveObject obj in MyWorld.Objetos)
             {
 
                 if (obj.objectType.Equals(InteractiveObject.ObjectTypes.Tree))
                 {
-                    obj.mesh.Effect = effect.Clone(MyGameModel.d3dDevice);
-                    obj.mesh.Effect.SetValue("meshHeight", obj.mesh.BoundingBox.PMax.Y);
-                    obj.mesh.Effect.SetValue("meshPosition", TgcParserUtils.vector3ToFloat3Array(obj.mesh.Position));
-                    obj.mesh.Effect.SetValue("bendFactor", 0.003f);
+                    obj.mesh.Effect = treeEffect;
                     obj.mesh.Technique = "BendScene";
                 }
                 else if (obj.objectType.Equals(InteractiveObject.ObjectTypes.Grass))
                 {
-                    obj.mesh.Effect = effect.Clone(MyGameModel.d3dDevice);
-                    obj.mesh.Effect.SetValue("meshHeight", obj.mesh.BoundingBox.PMax.Y);
-                    obj.mesh.Effect.SetValue("meshPosition", TgcParserUtils.vector3ToFloat3Array(obj.mesh.Position));
-                    obj.mesh.Effect.SetValue("bendFactor", 0.008f);
+                    obj.mesh.Effect = grassEffect;
                     obj.mesh.Technique = "BendScene";
                 }
                 else
                 {
-                    obj.mesh.Effect = effect;
+                    obj.mesh.Effect = mainEffect;
                     obj.mesh.Technique = "RenderScene";
                 }
                 
             }
 
-            MyWorld.Floor.Effect = effect;
+            MyWorld.Floor.Effect = mainEffect;
             MyWorld.Floor.Technique = "RenderScene";
 
             foreach (TgcMesh mesh in MyWorld.SkyBox.Faces)
             {
-                mesh.Effect = effect;
+                mesh.Effect = mainEffect;
                 mesh.Technique = "RenderScene";
             }
 
@@ -107,12 +110,16 @@ namespace TGC.Group.Model.Effects
 
             if (time < 0) time = 0;
 
-            foreach (InteractiveObject obj in MyWorld.Objetos)
-            {
-                obj.mesh.Effect.SetValue("time", time);
-                obj.mesh.Effect.SetValue("luz", luz);
-                obj.mesh.Effect.SetValue("wind", TgcParserUtils.vector2ToFloat2Array(MyWorld.Wind));
-            }
+            mainEffect.SetValue("time", time);
+            mainEffect.SetValue("luz", luz);
+
+            grassEffect.SetValue("time", time);
+            grassEffect.SetValue("luz", luz);
+            grassEffect.SetValue("wind", TgcParserUtils.vector2ToFloat2Array(MyWorld.Wind));
+
+            treeEffect.SetValue("time", time);
+            treeEffect.SetValue("luz", luz);
+            treeEffect.SetValue("wind", TgcParserUtils.vector2ToFloat2Array(MyWorld.Wind));
 
             foreach (TgcMesh mesh in MyWorld.SkyBox.Faces)
             {
@@ -135,7 +142,9 @@ namespace TGC.Group.Model.Effects
 
         public void dispose()
         {
-            effect.Dispose();
+            mainEffect.Dispose();
+            grassEffect.Dispose();
+            treeEffect.Dispose();
         }
     }
 }
