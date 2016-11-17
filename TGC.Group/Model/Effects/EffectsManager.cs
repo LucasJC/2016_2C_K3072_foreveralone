@@ -32,12 +32,35 @@ namespace TGC.Group.Model.Effects
             
             skyBoxColor = MyWorld.SkyBox.Color;
 
-            effect = TgcShaders.loadEffect(ShadersDir + "custom\\BasicShader.fx");
+            effect = TgcShaders.loadEffect(ShadersDir + "BasicShader.fx");
+            effect.SetValue("matView", gameModel.d3dDevice.Transform.View);
+            effect.SetValue("matProjection", gameModel.d3dDevice.Transform.Projection);
 
             foreach (InteractiveObject obj in MyWorld.Objetos)
             {
-                obj.mesh.Effect = effect;
-                obj.mesh.Technique = "RenderScene";
+
+                if (obj.objectType.Equals(InteractiveObject.ObjectTypes.Tree))
+                {
+                    obj.mesh.Effect = effect.Clone(MyGameModel.d3dDevice);
+                    obj.mesh.Effect.SetValue("meshHeight", obj.mesh.BoundingBox.PMax.Y);
+                    obj.mesh.Effect.SetValue("meshPosition", TgcParserUtils.vector3ToFloat3Array(obj.mesh.Position));
+                    obj.mesh.Effect.SetValue("bendFactor", 0.003f);
+                    obj.mesh.Technique = "BendScene";
+                }
+                else if (obj.objectType.Equals(InteractiveObject.ObjectTypes.Grass))
+                {
+                    obj.mesh.Effect = effect.Clone(MyGameModel.d3dDevice);
+                    obj.mesh.Effect.SetValue("meshHeight", obj.mesh.BoundingBox.PMax.Y);
+                    obj.mesh.Effect.SetValue("meshPosition", TgcParserUtils.vector3ToFloat3Array(obj.mesh.Position));
+                    obj.mesh.Effect.SetValue("bendFactor", 0.008f);
+                    obj.mesh.Technique = "BendScene";
+                }
+                else
+                {
+                    obj.mesh.Effect = effect;
+                    obj.mesh.Technique = "RenderScene";
+                }
+                
             }
 
             MyWorld.Floor.Effect = effect;
@@ -81,20 +104,26 @@ namespace TGC.Group.Model.Effects
         {
             float luz = calculateLight() + 0.1f;
             time += ElapsedTime;
-            effect.SetValue("time", time);
-            effect.SetValue("luz", luz);
+
+            if (time < 0) time = 0;
+
+            foreach (InteractiveObject obj in MyWorld.Objetos)
+            {
+                obj.mesh.Effect.SetValue("time", time);
+                obj.mesh.Effect.SetValue("luz", luz);
+                obj.mesh.Effect.SetValue("wind", TgcParserUtils.vector2ToFloat2Array(MyWorld.Wind));
+            }
+
+            foreach (TgcMesh mesh in MyWorld.SkyBox.Faces)
+            {
+                mesh.Effect.SetValue("time", (float) time);
+                mesh.Effect.SetValue("luz", luz);
+            }   
         }
 
         private float calculateLight()
         {
-            float result;
-
-            float light1 = lightByHour[MyGameModel.Hour];
-            float ligth2 = lightByHour[MyGameModel.Hour+1];
-
-            float peso1 = (MyGameModel.Minute * 1 / 60);
-
-            result = (light1 * peso1 + ligth2 * (1 - peso1)) / 2;
+            float result = (lightByHour[MyGameModel.Hour] * (MyGameModel.Minute * 1 / 60) + lightByHour[MyGameModel.Hour + 1] * (1 - (MyGameModel.Minute * 1 / 60))) / 2;
 
             return result;
         }

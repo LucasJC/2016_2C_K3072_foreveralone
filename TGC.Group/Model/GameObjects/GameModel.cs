@@ -40,7 +40,7 @@ namespace TGC.Group.Model
         private float secondsAuxCounter = 0;
 
         //Directx device
-        Microsoft.DirectX.Direct3D.Device d3dDevice;
+        public Microsoft.DirectX.Direct3D.Device d3dDevice;
         //Loader del framework
         private TgcSceneLoader loader;
 
@@ -428,6 +428,12 @@ namespace TGC.Group.Model
         /// </summary>
         private void checkTimeEvents()
         {
+
+            if (this.Seconds > 0 && this.Seconds % 2 == 0)
+            {
+                MyWorld.changeWind();
+            }
+                
             if (this.Seconds == 0 && this.Minute % 30 == 00)
             {
                 //cada 30 min el jugador sufre efectos del clima
@@ -437,7 +443,7 @@ namespace TGC.Group.Model
 
             if (this.Seconds == 0 && this.Minute == 0 && this.Hour % 4 == 0)
             {
-                //cada 12 horas cambio el clima aleatoriamente
+                //cada 4 horas cambio el clima aleatoriamente
                 MyWorld.changeWeather(Player1);
             }
         }

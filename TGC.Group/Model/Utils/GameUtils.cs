@@ -27,6 +27,15 @@ namespace TGC.Group.Model
         }
 
         /// <summary>
+        ///     Genera un vector de dos dimensiones para representar la dirección y fuerza del viento
+        /// </summary>
+        /// <returns></returns>
+        public static Vector2 getRandomWindVector()
+        {
+            return new Vector2((float) Rand.NextDouble(), (float)Rand.NextDouble());
+        }
+
+        /// <summary>
         ///     Genera un vector de escala de manera aleatoria.
         ///     Las coordenadas son todas iguales y van de 0.3f a 1f
         /// </summary>

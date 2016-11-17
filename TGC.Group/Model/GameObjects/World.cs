@@ -43,6 +43,8 @@ namespace TGC.Group.Model
         public int MapLength { get; set; }
         //octree para optimizaciones
         private Octree octree = new Octree();
+        //viento
+        public Vector2 Wind = new Vector2(1,0);
 
         /// <summary>
         /// 
@@ -120,6 +122,15 @@ namespace TGC.Group.Model
             }
         }
 
+        public void changeWind()
+        {
+            this.Wind = GameUtils.getRandomWindVector();
+        }
+
+        /// <summary>
+        ///     modifica el clima aleatoriamente
+        /// </summary>
+        /// <param name="player"></param>
         public void changeWeather(Player player)
         {
             int random = GameUtils.Rand.Next(4);
@@ -273,7 +284,7 @@ namespace TGC.Group.Model
                 instance.Transform = Matrix.Scaling(instance.Scale) * Matrix.Translation(instance.Position);
                 instance.updateBoundingBox();
                 instance.AlphaBlendEnable = true;
-                InteractiveObject interactiveObject = new InteractiveObject("Grass", 1, instance, InteractiveObject.Materials.Plant, InteractiveObject.ObjectTypes.Misc);
+                InteractiveObject interactiveObject = new InteractiveObject("Grass", 1, instance, InteractiveObject.Materials.Plant, InteractiveObject.ObjectTypes.Grass);
                 interactiveObject.drops.Add(InventoryObject.ObjectTypes.Seed);
                 Objetos.Add(interactiveObject);
             }
