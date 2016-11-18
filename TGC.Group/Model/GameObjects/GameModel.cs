@@ -83,7 +83,7 @@ namespace TGC.Group.Model
         //Semilla para randoms
         public static int RandomSeed { get; } = 666;
         //Dimensiones de cada cuadrante del mapa
-        public static int MapLength { get; } = 14000;
+        public static int MapLength { get; } = 7000;
 
         private bool gameOver = false;
 

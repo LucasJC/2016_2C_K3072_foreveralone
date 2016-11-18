@@ -71,11 +71,12 @@ namespace TGC.Group.Model
             CreateSkyBox();
 
             TgcBox box = new TgcBox();
-            box.Size = new Vector3(Floor.Size.X, 50, Floor.Size.Z);
+            box.Size = new Vector3(MapLength, 50, MapLength);
 
             //octree.create(Objetos, box.BoundingBox);
             //octree.createDebugOctreeMeshes();
             quad.create(Objetos, box.BoundingBox);
+            //quad.createDebugQuadtreeMeshes();
 
         }
 
@@ -91,6 +92,7 @@ namespace TGC.Group.Model
                 SkyBox.Center = Camera.Position;
             }
             //octree.update(CameraFrustum);
+            
         }
 
         /// <summary>
@@ -181,7 +183,17 @@ namespace TGC.Group.Model
             //Crear SkyBox
             SkyBox = new TgcSkyBox();
             SkyBox.Center = new Vector3(0, 0, 0);
-            SkyBox.Size = new Vector3(MapLength * 1f, MapLength * 1f, MapLength * 1f);
+            int SkyBoxLength = 0;
+
+            if (MapLength > 7000)
+            {
+                SkyBoxLength = 7000;
+            }else
+            {
+                SkyBoxLength = MapLength;
+            }
+
+            SkyBox.Size = new Vector3(SkyBoxLength, SkyBoxLength, SkyBoxLength);
 
             var texturesPath = MediaDir + "Textures\\SkyBox\\";
             String imgNameRoot = "clouds";

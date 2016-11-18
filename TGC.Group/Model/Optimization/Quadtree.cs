@@ -57,6 +57,11 @@ namespace TGC.Group.Model.Optimization
         /// </summary>
         public void render(TgcFrustum frustum, bool debugEnabled)
         {
+            foreach (var modelo in modelos)
+            {
+                modelo.mesh.Enabled = false;
+            }
+
             var pMax = sceneBounds.PMax;
             var pMin = sceneBounds.PMin;
             findVisibleMeshes(frustum, quadtreeRootNode,
@@ -69,7 +74,6 @@ namespace TGC.Group.Model.Optimization
                 if (modelo.mesh.Enabled)
                 {
                     modelo.mesh.render();
-                    modelo.mesh.Enabled = false;
                 }
             }
 
