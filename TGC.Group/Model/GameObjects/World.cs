@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TGC.Core.BoundingVolumes;
 using TGC.Core.Camara;
+using TGC.Core.Collision;
 using TGC.Core.Geometry;
 using TGC.Core.SceneLoader;
 using TGC.Core.Terrain;
@@ -70,8 +71,8 @@ namespace TGC.Group.Model
             TgcBox box = new TgcBox();
             box.Size = new Vector3(Floor.Size.X, 100, Floor.Size.Z);
 
-            octree.create(Objetos, box.BoundingBox);
-            octree.createDebugOctreeMeshes();
+            //octree.create(Objetos, box.BoundingBox);
+            //octree.createDebugOctreeMeshes();
 
         }
 
@@ -86,7 +87,21 @@ namespace TGC.Group.Model
             {
                 SkyBox.Center = Camera.Position;
             }
-            octree.update(CameraFrustum);
+            //octree.update(CameraFrustum);
+
+            foreach(InteractiveObject obj in this.Objetos)
+            {
+                //testeo colisión de cada objeto con el frustum para habilitarlo o no
+                TgcCollisionUtils.FrustumResult result = TgcCollisionUtils.classifyFrustumAABB(CameraFrustum, obj.mesh.BoundingBox);
+
+                if (TgcCollisionUtils.FrustumResult.INSIDE.Equals(result) || TgcCollisionUtils.FrustumResult.INTERSECT.Equals(result))
+                {
+                    obj.mesh.Enabled = true;
+                }else
+                {
+                    obj.mesh.Enabled = false;
+                }
+            }
         }
 
         /// <summary>
@@ -96,7 +111,14 @@ namespace TGC.Group.Model
         {
             SkyBox.render();
             Floor.render();
-            octree.render(CameraFrustum, false);
+            //octree.render(CameraFrustum, false);
+            foreach (InteractiveObject obj in this.Objetos)
+            {
+                if(obj.mesh.Enabled)
+                {
+                    obj.mesh.render();
+                }
+            }
         }
 
         /// <summary>
