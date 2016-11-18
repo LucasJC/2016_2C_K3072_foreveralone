@@ -38,7 +38,8 @@ namespace TGC.Group.Model
         public int Seconds { get; set; } = 0;
         public DayCycle Cycle { get; set; }
         private float secondsAuxCounter = 0;
-
+        //indica si se está en modo dios
+        private bool GodMode = false;
         //Directx device
         public Microsoft.DirectX.Direct3D.Device d3dDevice;
         //Loader del framework
@@ -83,7 +84,8 @@ namespace TGC.Group.Model
         //Semilla para randoms
         public static int RandomSeed { get; } = 666;
         //Dimensiones de cada cuadrante del mapa
-        public static int MapLength { get; } = 7000;
+        public static int MapLength { get; } = 14000;
+        public static int RenderDistance { get; } = 2000;
 
         private bool gameOver = false;
 
@@ -118,20 +120,20 @@ namespace TGC.Group.Model
             //creo usuario
             Player1 = new Player();
             Player1.gameModel = this;
-            //genero el mundo
-            MyWorld = new World(MediaDir, d3dDevice, loader, Camara, Frustum, MapLength, true);
-
-            //inicializo efectos
-            effectsManager = new EffectsManager(ShadersDir, this, MyWorld, ElapsedTime);
             //inicializo mesh para hacha
             TgcMesh axe = loader.loadSceneFromFile(MediaDir + "Meshes\\Hacha\\Hacha-TgcScene.xml").Meshes[0];
             axe.Scale = new Vector3(0.1f, 0.1f, 0.1f);
-
             //Inicializo cámara
             MyCamera = new TgcFpsCamera(Player1, axe, Input, (MapLength / 2), -(MapLength / 2), (MapLength / 2), -(MapLength / 2));
             Camara = MyCamera;
 
             Frustum.updateVolume(D3DDevice.Instance.Device.Transform.View, D3DDevice.Instance.Device.Transform.Projection);
+
+            //genero el mundo
+            MyWorld = new World(MediaDir, d3dDevice, loader, Camara, Frustum, MapLength, true);
+            MyWorld.RenderDistance = RenderDistance;
+            //inicializo efectos
+            effectsManager = new EffectsManager(ShadersDir, this, MyWorld, ElapsedTime);
 
             //emisor de partículas
             emitter = new ParticleEmitter(MediaDir + "Textures\\smokeParticle.png", 10);
@@ -292,6 +294,28 @@ namespace TGC.Group.Model
                 {
                     //comb ok
                     soundPlayer.playActionSound(SoundPlayer.Actions.Success);
+                }
+            }
+            else if (Input.keyPressed(Key.RightShift))
+            {
+                //god mode!
+                if(!GodMode)
+                {
+                    GodMode = true;
+                    MyCamera.WalkingSpeed = MyCamera.WalkingSpeed * 5;
+                    MyCamera.RunningSpeed = MyCamera.RunningSpeed * 5;
+                    Player1.Stamina = 9999;
+                    Player1.BaseDamage = 100;
+                    setTopRightText("Modo Dios Activado");
+                }
+                else
+                {
+                    GodMode = false;
+                    MyCamera.WalkingSpeed = MyCamera.WalkingSpeed / 5;
+                    MyCamera.RunningSpeed = MyCamera.RunningSpeed / 5;
+                    Player1.Stamina = 100;
+                    Player1.BaseDamage = 1;
+                    setTopRightText("Modo Dios Desactivado");
                 }
             }
         }

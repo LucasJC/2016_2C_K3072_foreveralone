@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TGC.Core.Text;
+using TGC.Core.Utils;
 
 namespace TGC.Group.Model
 {
@@ -45,6 +46,21 @@ namespace TGC.Group.Model
             float scale = (float)Rand.NextDouble();
             if (scale < 0.3f) scale = 0.3f;
             return new Vector3(scale, scale, scale);
+        }
+
+        /// <summary>
+        ///     Retorna la distancia entre dos Vector3
+        /// </summary>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
+        /// <returns></returns>
+        public static float calculateDistance(Vector3 v1, Vector3 v2)
+        {
+            float result = 0;
+
+            Vector3 distance = new Vector3(v1.X - v2.X, v1.Y - v2.Y, v1.Z - v2.Z);
+
+            return FastMath.Sqrt(distance.X * distance.X + distance.Y * distance.Y + distance.Z * distance.Z);
         }
 
         /// <summary>

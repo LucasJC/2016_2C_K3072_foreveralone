@@ -52,10 +52,7 @@ namespace TGC.Group.Model.Optimization
             debugQuadtreeBoxes = builder.createDebugQuadtreeMeshes(quadtreeRootNode, sceneBounds);
         }
 
-        /// <summary>
-        ///     Renderizar en forma optimizado utilizando el Quadtree para hacer FrustumCulling
-        /// </summary>
-        public void render(TgcFrustum frustum, bool debugEnabled)
+        public void update(TgcFrustum frustum)
         {
             foreach (var modelo in modelos)
             {
@@ -67,7 +64,13 @@ namespace TGC.Group.Model.Optimization
             findVisibleMeshes(frustum, quadtreeRootNode,
                 pMin.X, pMin.Y, pMin.Z,
                 pMax.X, pMax.Y, pMax.Z);
+        }
 
+        /// <summary>
+        ///     Renderizar en forma optimizado utilizando el Quadtree para hacer FrustumCulling
+        /// </summary>
+        public void render(TgcFrustum frustum, bool debugEnabled)
+        {
             //Renderizar
             foreach (var modelo in modelos)
             {

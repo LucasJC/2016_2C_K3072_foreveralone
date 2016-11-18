@@ -42,6 +42,8 @@ namespace TGC.Group.Model
         public bool MoveSkyBoxWithCamera { get; set; }
         //longitud de cada lado del mapa
         public int MapLength { get; set; }
+        //distancia máxima de renderizado
+        public int RenderDistance;
         //octree para optimizaciones
         //private Octree octree = new Octree();
         //quadtree para optimizaciones
@@ -66,7 +68,7 @@ namespace TGC.Group.Model
             Camera = camera;
             CameraFrustum = frustum;
             MapLength = mapLength;
-
+            this.RenderDistance = 1000;
             CreateMap();
             CreateSkyBox();
 
@@ -92,7 +94,20 @@ namespace TGC.Group.Model
                 SkyBox.Center = Camera.Position;
             }
             //octree.update(CameraFrustum);
+            quad.update(CameraFrustum);
             
+            //limito distancia de renderizado en función a dónde estoy parado
+            foreach (InteractiveObject obj in this.Objetos)
+            {
+                if(obj.mesh.Enabled)
+                {
+                    float dist = GameUtils.calculateDistance(Camera.Position, obj.mesh.Position);
+                    if (dist > RenderDistance)
+                    {
+                        obj.mesh.Enabled = false;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -102,14 +117,6 @@ namespace TGC.Group.Model
         {
             SkyBox.render();
             Floor.render();
-            //octree.render(CameraFrustum, false);
-            /*foreach (InteractiveObject obj in this.Objetos)
-            {
-                if(obj.mesh.Enabled)
-                {
-                    obj.mesh.render();
-                }
-            }*/
             quad.render(CameraFrustum, false);
         }
 
@@ -166,13 +173,13 @@ namespace TGC.Group.Model
             Floor = new TgcPlane(new Vector3(-(MapLength / 2), 0, -(MapLength / 2)), new Vector3(MapLength, 0, MapLength), TgcPlane.Orientations.XZplane, floorTexture, 70f * multiplier, 70f * multiplier);
 
             //creo los árboles
-            CreateTrees(250 * multiplier);
+            CreateTrees(500 * multiplier);
             //creo rocas
-            CreateRocks(100 * multiplier);
+            CreateRocks(200 * multiplier);
             //creo pasto
-            CreateGrass(500 * multiplier);
+            CreateGrass(1000 * multiplier);
             //creo otros objetos
-            CreateObjects(10 * multiplier);
+            CreateObjects(20 * multiplier);
         }
 
         /// <summary>

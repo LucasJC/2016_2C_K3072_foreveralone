@@ -44,6 +44,8 @@ namespace TGC.Group.Model
 
         public int Stamina { get; set; } = 100;
 
+        public int BaseDamage { get; set; } = 1;
+
         /// <summary>
         ///     elementos del inventario
         /// </summary>
@@ -198,7 +200,7 @@ namespace TGC.Group.Model
         public int getDamage()
         {
             //default damage
-            int damage = 1;
+            int damage = BaseDamage;
             if(null != this.EquippedTool)
             {
                 damage = this.EquippedTool.Damage;
