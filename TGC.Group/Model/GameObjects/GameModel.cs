@@ -83,7 +83,7 @@ namespace TGC.Group.Model
         //Semilla para randoms
         public static int RandomSeed { get; } = 666;
         //Dimensiones de cada cuadrante del mapa
-        public static int MapLength { get; } = 7000;
+        public static int MapLength { get; } = 14000;
 
         private bool gameOver = false;
 
@@ -429,7 +429,7 @@ namespace TGC.Group.Model
         private void checkTimeEvents()
         {
 
-            if (this.Seconds > 0 && this.Seconds % 4 == 0)
+            if (this.Seconds > 0 && this.Seconds % 10 == 0)
             {
                 MyWorld.changeWind();
             }

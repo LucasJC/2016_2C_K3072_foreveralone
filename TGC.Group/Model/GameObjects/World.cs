@@ -43,7 +43,9 @@ namespace TGC.Group.Model
         //longitud de cada lado del mapa
         public int MapLength { get; set; }
         //octree para optimizaciones
-        private Octree octree = new Octree();
+        //private Octree octree = new Octree();
+        //quadtree para optimizaciones
+        private Quadtree quad = new Quadtree();
         //viento
         public Vector2 Wind = new Vector2(1,0);
 
@@ -69,10 +71,11 @@ namespace TGC.Group.Model
             CreateSkyBox();
 
             TgcBox box = new TgcBox();
-            box.Size = new Vector3(Floor.Size.X, 100, Floor.Size.Z);
+            box.Size = new Vector3(Floor.Size.X, 50, Floor.Size.Z);
 
             //octree.create(Objetos, box.BoundingBox);
             //octree.createDebugOctreeMeshes();
+            quad.create(Objetos, box.BoundingBox);
 
         }
 
@@ -88,20 +91,6 @@ namespace TGC.Group.Model
                 SkyBox.Center = Camera.Position;
             }
             //octree.update(CameraFrustum);
-
-            foreach(InteractiveObject obj in this.Objetos)
-            {
-                //testeo colisión de cada objeto con el frustum para habilitarlo o no
-                TgcCollisionUtils.FrustumResult result = TgcCollisionUtils.classifyFrustumAABB(CameraFrustum, obj.mesh.BoundingBox);
-
-                if (TgcCollisionUtils.FrustumResult.INSIDE.Equals(result) || TgcCollisionUtils.FrustumResult.INTERSECT.Equals(result))
-                {
-                    obj.mesh.Enabled = true;
-                }else
-                {
-                    obj.mesh.Enabled = false;
-                }
-            }
         }
 
         /// <summary>
@@ -112,13 +101,14 @@ namespace TGC.Group.Model
             SkyBox.render();
             Floor.render();
             //octree.render(CameraFrustum, false);
-            foreach (InteractiveObject obj in this.Objetos)
+            /*foreach (InteractiveObject obj in this.Objetos)
             {
                 if(obj.mesh.Enabled)
                 {
                     obj.mesh.render();
                 }
-            }
+            }*/
+            quad.render(CameraFrustum, false);
         }
 
         /// <summary>

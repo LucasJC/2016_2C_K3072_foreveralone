@@ -97,6 +97,9 @@
     <Compile Include="Model\Optimization\Octree.cs" />
     <Compile Include="Model\Optimization\OctreeBuilder.cs" />
     <Compile Include="Model\Optimization\OctreeNode.cs" />
+    <Compile Include="Model\Optimization\Quadtree.cs" />
+    <Compile Include="Model\Optimization\QuadtreeBuilder.cs" />
+    <Compile Include="Model\Optimization\QuadtreeNode.cs" />
     <Compile Include="Model\Utils\GameUtils.cs" />
     <Compile Include="Model\Optimization\GrillaRegular.cs" />
     <Compile Include="Model\Optimization\GrillaRegularNode.cs" />
