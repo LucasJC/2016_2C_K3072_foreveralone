@@ -33,10 +33,10 @@ namespace TGC.Group.Model
 
         //hora del día para controlar ciclos de día y noche
         public int Day { get; set; } = 0;
-        public int Hour { get; set; } = 0;
+        public int Hour { get; set; } = 6;
         public int Minute { get; set; } = 0;
         public int Seconds { get; set; } = 0;
-        public DayCycle Cycle { get; set; }
+        public DayCycle Cycle { get; set; } = GameModel.DayCycle.DAY;
         private float secondsAuxCounter = 0;
         //indica si se está en modo dios
         private bool GodMode = false;
@@ -89,6 +89,8 @@ namespace TGC.Group.Model
 
         private bool gameOver = false;
 
+        private TgcMesh Axe;
+
         private static Vector3 zeroVector = new Vector3(0f, 0f, 0f);
 
         /// <summary>
@@ -121,10 +123,10 @@ namespace TGC.Group.Model
             Player1 = new Player();
             Player1.gameModel = this;
             //inicializo mesh para hacha
-            TgcMesh axe = loader.loadSceneFromFile(MediaDir + "Meshes\\Hacha\\Hacha-TgcScene.xml").Meshes[0];
-            axe.Scale = new Vector3(0.1f, 0.1f, 0.1f);
+            Axe = loader.loadSceneFromFile(MediaDir + "Meshes\\Hacha\\Hacha-TgcScene.xml").Meshes[0];
+            Axe.Scale = new Vector3(0.1f, 0.1f, 0.1f);
             //Inicializo cámara
-            MyCamera = new TgcFpsCamera(Player1, axe, Input, (MapLength / 2), -(MapLength / 2), (MapLength / 2), -(MapLength / 2));
+            MyCamera = new TgcFpsCamera(Player1, Input, (MapLength / 2), -(MapLength / 2), (MapLength / 2), -(MapLength / 2));
             Camara = MyCamera;
 
             Frustum.updateVolume(D3DDevice.Instance.Device.Transform.View, D3DDevice.Instance.Device.Transform.Projection);
@@ -255,7 +257,7 @@ namespace TGC.Group.Model
             }
             else if (Input.keyPressed(Key.E))
             {
-                if(Player1.SelectedItem.isEquippable())
+                if(null != Player1.SelectedItem && Player1.SelectedItem.isEquippable())
                 { 
                     soundPlayer.playActionSound(SoundPlayer.Actions.Menu_Select);
                     Player1.equipSelectedItem();
@@ -263,7 +265,7 @@ namespace TGC.Group.Model
                 else
                 {
                     //intento consumir el item ya que no era equipable
-                    if (Player1.consumeItem())
+                    if (null != Player1.SelectedItem && Player1.consumeItem())
                     {
                         soundPlayer.playActionSound(SoundPlayer.Actions.Drink);
                     }else
@@ -411,7 +413,7 @@ namespace TGC.Group.Model
         /// <param name="elapsedTime"></param>
         private void updateDayTime(float elapsedTime)
         {
-            secondsAuxCounter += (elapsedTime) * 1000;
+            secondsAuxCounter += (elapsedTime) * 500;
 
             Seconds += (int)secondsAuxCounter;
             secondsAuxCounter = 0;
@@ -436,7 +438,7 @@ namespace TGC.Group.Model
                         Day++;
                     }
 
-                    if(Hour >= 19)
+                    if(Hour >= 19 || Hour < 6)
                     {
                         Cycle = GameModel.DayCycle.NIGHT;
                     }else
@@ -492,7 +494,11 @@ namespace TGC.Group.Model
 
             MyCamera.render();
 
-            if(null != pickedObject)
+            //Axe.Position = MyCamera.Position;
+            Axe.Transform = Matrix.Translation(new Vector3(0, 0, 0)) * Matrix.RotationY(FastMath.Sin(ElapsedTime * 0.5f)) * Matrix.Translation(Axe.Position) * Matrix.Scaling(Axe.Scale);
+            Axe.render();
+
+            if (null != pickedObject)
             {
                 //un objeto fue objetivo de una acción
                 soundPlayer.playMaterialSound(pickedObject.material);

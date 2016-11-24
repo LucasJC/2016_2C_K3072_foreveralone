@@ -67,8 +67,6 @@ namespace TGC.Examples.Camara
         public TgcBox CameraBox { get; set; } = TgcBox.fromExtremes(new Vector3(0, 0, 0), new Vector3(2, 2, 2));
         public Key LastMovementKey;
 
-        private TgcMesh axe;
-
         public TgcFpsCamera(TgcD3dInput input)
         {
             Input = input;
@@ -93,10 +91,9 @@ namespace TGC.Examples.Camara
             this.PreviousUpVector = DEFAULT_UP_VECTOR;
         }
 
-        public TgcFpsCamera(Player player1, TgcMesh axe, TgcD3dInput input, float mapXLimit, float mapXNegLimit, float mapZLimit, float mapZNegLimit) : this(input)
+        public TgcFpsCamera(Player player1, TgcD3dInput input, float mapXLimit, float mapXNegLimit, float mapZLimit, float mapZNegLimit) : this(input)
         {
             this.player1 = player1;
-            this.axe = axe;
             this.MapXLimit = mapXLimit;
             this.MapXNegLimit = mapXNegLimit;
             this.MapZLimit = mapZLimit;
@@ -314,9 +311,6 @@ namespace TGC.Examples.Camara
                 var cameraRotatedUpVector = Vector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
 
                 base.SetCamera(positionEye, cameraFinalTarget, cameraRotatedUpVector);
-
-                axe.Position = new Vector3(positionEye.X + 2, positionEye.Y - 2, positionEye.Z);
-                axe.Transform = Matrix.RotationX(updownRot) * Matrix.RotationY(leftrightRot) * Matrix.Translation(axe.Position) * Matrix.Scaling(axe.Scale);
             }
         }
 
@@ -342,7 +336,7 @@ namespace TGC.Examples.Camara
 
         public void render()
         {
-            if(null != player1.EquippedTool) axe.render();
+            //if(null != player1.EquippedTool) axe.render();
         }
     }
 }

@@ -244,7 +244,8 @@ namespace TGC.Group.Model
 
         public void update()
         {
-            dayTime.Text = "day: " + gameModelInstance.Day + ", time: " + gameModelInstance.Hour + ":" + ((gameModelInstance.Minute.ToString().Length == 1) ? "0" : "") + gameModelInstance.Minute + ":" + ((gameModelInstance.Seconds.ToString().Length == 1) ? "0" : "") + gameModelInstance.Seconds + "(" + gameModelInstance.Cycle + ")";
+            String cycle = gameModelInstance.Cycle.Equals(GameModel.DayCycle.DAY) ? "Día" : "Noche";
+            dayTime.Text = "Día Nro: " + gameModelInstance.Day + ", Hora: " + gameModelInstance.Hour + ":" + ((gameModelInstance.Minute.ToString().Length == 1) ? "0" : "") + gameModelInstance.Minute + ":" + ((gameModelInstance.Seconds.ToString().Length == 1) ? "0" : "") + gameModelInstance.Seconds + "(" + cycle + ")";
 
             //actualiz barras de status
             hpBarSprite.Scaling = new Vector2(((float)Player1.LifePoints) / 100f, 1);
