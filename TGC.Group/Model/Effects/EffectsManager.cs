@@ -26,6 +26,8 @@ namespace TGC.Group.Model.Effects
         private float ElapsedTime;
         private Dictionary<int, float> lightByHour = new Dictionary<int, float>();
         private Color skyBoxColor;
+        //private List<TgcMesh> otherMeshes = new List<TgcMesh>();
+
         public EffectsManager(string shadersDir, GameModel gameModel, World myWorld, float elapsedTime)
         {
             ShadersDir = shadersDir;
@@ -125,7 +127,7 @@ namespace TGC.Group.Model.Effects
             {
                 mesh.Effect.SetValue("time", (float) time);
                 mesh.Effect.SetValue("luz", luz);
-            }   
+            }
         }
 
         private float calculateLight()
@@ -133,6 +135,12 @@ namespace TGC.Group.Model.Effects
             float result = (lightByHour[MyGameModel.Hour] * (MyGameModel.Minute * 1 / 60) + lightByHour[MyGameModel.Hour + 1] * (1 - (MyGameModel.Minute * 1 / 60))) / 2;
 
             return result;
+        }
+
+        public void applyEffect(TgcMesh mesh)
+        {
+            mesh.Effect = mainEffect;
+            mesh.Technique = "RenderScene";
         }
 
         public void render()

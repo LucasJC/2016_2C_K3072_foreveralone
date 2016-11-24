@@ -122,11 +122,12 @@ namespace TGC.Group.Model
             //creo usuario
             Player1 = new Player();
             Player1.gameModel = this;
+
             //inicializo mesh para hacha
             Axe = loader.loadSceneFromFile(MediaDir + "Meshes\\Hacha\\Hacha-TgcScene.xml").Meshes[0];
-            Axe.Scale = new Vector3(0.1f, 0.1f, 0.1f);
+
             //Inicializo cámara
-            MyCamera = new TgcFpsCamera(Player1, Input, (MapLength / 2), -(MapLength / 2), (MapLength / 2), -(MapLength / 2));
+            MyCamera = new TgcFpsCamera(Player1, Axe, Input, (MapLength / 2), -(MapLength / 2), (MapLength / 2), -(MapLength / 2));
             Camara = MyCamera;
 
             Frustum.updateVolume(D3DDevice.Instance.Device.Transform.View, D3DDevice.Instance.Device.Transform.Projection);
@@ -136,6 +137,8 @@ namespace TGC.Group.Model
             MyWorld.RenderDistance = RenderDistance;
             //inicializo efectos
             effectsManager = new EffectsManager(ShadersDir, this, MyWorld, ElapsedTime);
+
+            effectsManager.applyEffect(Axe);
 
             //emisor de partículas
             emitter = new ParticleEmitter(MediaDir + "Textures\\smokeParticle.png", 10);
@@ -455,7 +458,7 @@ namespace TGC.Group.Model
         private void checkTimeEvents()
         {
 
-            if (this.Seconds > 0 && this.Seconds % 10 == 0)
+            if (this.Seconds > 0 && this.Seconds % 7 == 0)
             {
                 MyWorld.changeWind();
             }
@@ -473,6 +476,8 @@ namespace TGC.Group.Model
                 MyWorld.changeWeather(Player1);
             }
         }
+
+        float acuTime = 0;
 
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
@@ -493,10 +498,6 @@ namespace TGC.Group.Model
             MenuInterface.render();
 
             MyCamera.render();
-
-            //Axe.Position = MyCamera.Position;
-            Axe.Transform = Matrix.Translation(new Vector3(0, 0, 0)) * Matrix.RotationY(FastMath.Sin(ElapsedTime * 0.5f)) * Matrix.Translation(Axe.Position) * Matrix.Scaling(Axe.Scale);
-            Axe.render();
 
             if (null != pickedObject)
             {

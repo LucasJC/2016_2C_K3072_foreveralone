@@ -49,6 +49,7 @@ namespace TGC.Examples.Camara
         private float JumpingTime = 0f;
 
         private Player player1;
+        private TgcMesh playerTool;
 
         private float MovementSpeed;
 
@@ -91,9 +92,10 @@ namespace TGC.Examples.Camara
             this.PreviousUpVector = DEFAULT_UP_VECTOR;
         }
 
-        public TgcFpsCamera(Player player1, TgcD3dInput input, float mapXLimit, float mapXNegLimit, float mapZLimit, float mapZNegLimit) : this(input)
+        public TgcFpsCamera(Player player1, TgcMesh playerTool, TgcD3dInput input, float mapXLimit, float mapXNegLimit, float mapZLimit, float mapZNegLimit) : this(input)
         {
             this.player1 = player1;
+            this.playerTool = playerTool;
             this.MapXLimit = mapXLimit;
             this.MapXNegLimit = mapXNegLimit;
             this.MapZLimit = mapZLimit;
@@ -311,6 +313,16 @@ namespace TGC.Examples.Camara
                 var cameraRotatedUpVector = Vector3.TransformNormal(cameraOriginalUpVector, cameraRotation);
 
                 base.SetCamera(positionEye, cameraFinalTarget, cameraRotatedUpVector);
+
+                playerTool.AutoTransformEnable = false;
+                //playerTool.Transform = Matrix.RotationX(-FastMath.QUARTER_PI / 2) * Matrix.RotationY(FastMath.QUARTER_PI) * Matrix.Translation(new Vector3(positionEye.X - 3, positionEye.Y - 15, positionEye.Z - 8));
+                //playerTool.Position = new Vector3(cameraFinalTarget.X - 3, cameraFinalTarget.Y - 15, cameraFinalTarget.Z - 8);
+                playerTool.Position = new Vector3(cameraFinalTarget.X, cameraFinalTarget.Y, cameraFinalTarget.Z);
+                playerTool.Scale = new Vector3(0.1f, 0.1f, 0.1f);
+                //Matrix.RotationY(FastMath.QUARTER_PI) * Matrix.RotationY(leftrightRot)
+                playerTool.Transform = Matrix.Scaling(playerTool.Scale) * cameraRotation * Matrix.Translation(playerTool.Position);
+
+
             }
         }
 
@@ -336,7 +348,7 @@ namespace TGC.Examples.Camara
 
         public void render()
         {
-            //if(null != player1.EquippedTool) axe.render();
+            //if(null != player1.EquippedTool) playerTool.render();
         }
     }
 }
